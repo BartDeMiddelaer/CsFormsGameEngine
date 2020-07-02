@@ -16,7 +16,6 @@ namespace GameEngineForms
 {
     public partial class Game : Form
     {
-        int z = 0;
         public Game()
         {
             ClientSize = new Size(450, 350);        
