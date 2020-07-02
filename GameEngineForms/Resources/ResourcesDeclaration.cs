@@ -42,6 +42,7 @@ namespace GameEngineForms.Resources
         public List<Rect> RectGeometry { get; set; } = new List<Rect>();
         public List<Circle> CircleGeometry { get; set; } = new List<Circle>();
         public List<Ellipse> EllipseGeometry { get; set; } = new List<Ellipse>();
+        public List<Text> TextGeometry { get; set; } = new List<Text>();
         public int ObjectCount { get; set; } = 0;
 
         // GameCycle Porpertys Reseting
@@ -51,6 +52,7 @@ namespace GameEngineForms.Resources
             RectGeometry.Clear();
             CircleGeometry.Clear();
             EllipseGeometry.Clear();
+            TextGeometry.Clear();
             ObjectCount = 0;
         };
 

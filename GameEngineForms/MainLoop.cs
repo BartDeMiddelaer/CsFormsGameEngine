@@ -87,6 +87,7 @@ namespace GameEngineForms
         }
         private static void Render(object sender, PaintEventArgs e)
         {
+          
             InvokeDraw(sender,e);
 
             GameObjects.LineGeometry.ForEach(l => {
@@ -185,6 +186,26 @@ namespace GameEngineForms
                 GameObjects.ObjectCount++;
 
              });
+
+            GameObjects.TextGeometry.ForEach(t => {
+
+
+                if (t.Angle != null || t.Angle != 0)
+                {
+                    var textDym = TextRenderer.MeasureText(t.Context, t.Font ?? new Font("Arial", 10));
+
+                    float moveX = textDym.Width / 2f + t.StartPoint.X;
+                    float moveY = textDym.Height / 2f + t.StartPoint.Y;
+
+                    e.Graphics.TranslateTransform(moveX, moveY);
+                    e.Graphics.RotateTransform(t.Angle ?? 0);
+                    e.Graphics.TranslateTransform(-moveX, -moveY);
+                }
+
+                e.Graphics.DrawString(t.Context, t.Font ?? new Font("Arial", 10), new SolidBrush(t.FontColor), t.StartPoint);
+
+                e.Graphics.ResetTransform();
+            });
 
         }
         private static void CollisionDetection()

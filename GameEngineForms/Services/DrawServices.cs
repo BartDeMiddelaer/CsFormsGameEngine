@@ -81,5 +81,18 @@ namespace GameEngineForms.Services
                     Angle = angle
                 });
         }
+        public static void DrawText(string context, Font font, Color color, Point startPoint, float? angle)
+        {
+            GameObjects.TextGeometry.Add(new Text
+            {
+                Context = context,
+                Font = font,
+                FontColor = color,
+                StartPoint = startPoint,
+                Angle = angle
+            });
+        }
+      
+
     }
 }
