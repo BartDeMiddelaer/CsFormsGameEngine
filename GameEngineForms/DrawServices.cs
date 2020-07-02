@@ -10,21 +10,35 @@ namespace GameEngineForms
     public static class DrawServices
     {
         internal delegate void DrawDelegate(object sender, PaintEventArgs e);
-        internal static event DrawDelegate DrawEvent;
+        internal static event DrawDelegate GameCycle;
+        public static void InvokeDraw(object sender, PaintEventArgs e) => GameCycle?.Invoke(sender, e);
 
 
-        public static void Draw(object sender, PaintEventArgs e) => DrawEvent?.Invoke(sender,e);
+        internal delegate void DestructorDelegate();
+        internal static event DestructorDelegate Destructor;
+        public static void InvokeDestructor() => Destructor?.Invoke();
+
+
+
+        public static Point GetMousePosition()
+        {
+            Rectangle screenRectangle = GetForm().RectangleToScreen(GetForm().ClientRectangle);
+
+            return new Point
+            {
+                X = Control.MousePosition.X - screenRectangle.X,
+                Y = Control.MousePosition.Y - screenRectangle.Y
+            };
+        }
         public static Form GetForm() => GameObjects.GameToRun;
         public static void SetForm(Form form) {
             GameObjects.GameToRun = form;   
         }
-
-
-
         public static PictureBox GetPictureBox() => GameObjects.PictureBox;
 
 
-        public static void DrawLine(Color color, int thickness, Point startPoint, Point endPoint)
+
+        public static void DrawLine(Color color, float thickness, Point startPoint, Point endPoint)
         {
             GameObjects.LineGeometry.Add(
                 new Line
@@ -37,7 +51,7 @@ namespace GameEngineForms
                     Length = null
                 });
         }
-        public static void DrawLine(Color color, int thickness, Point startPoint, int length, float angle)
+        public static void DrawLine(Color color, float thickness, Point startPoint, int length, float angle)
         {
 
             var endPoint_x = startPoint.X + Math.Cos((Math.PI / 180.0) * angle) * length;
@@ -69,5 +83,31 @@ namespace GameEngineForms
                     Angle = angle
                 });      
         }
+        public static void DrawCircle(Point centerPoint, float radius, Color? fillColor, Color? strokeColor, float strokeThickness)
+        {
+            GameObjects.CircleGeometry.Add( new Circle { 
+                CenterPoint = centerPoint,
+                Radius = radius,
+                FillColor = fillColor,
+                StrokeColor = strokeColor,
+                StrokeThickness = strokeThickness
+            });
+        }
+        public static void DrawEllipse(Color? strokeColor, Color? fillColor, float? strokeThickness, Point centerPoint, int width, int height, float? angle)
+        {
+            GameObjects.EllipseGeometry.Add(
+                new Ellipse
+                {
+                    StrokeColor = strokeColor,
+                    FillColor = fillColor,
+                    StrokeThickness = strokeThickness,
+                    CenterPoint = centerPoint,
+                    Width = width,
+                    Height = height,                  
+                    Angle = angle
+                });
+        }
+
+
     }
 }
