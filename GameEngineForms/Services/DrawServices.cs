@@ -3,41 +3,14 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
-using static GameEngineForms.Resources;
+using GameEngineForms.Resources;
+using GameEngineForms.Resources.Shapes;
+using static GameEngineForms.Resources.ResourcesDeclaration;
 
-namespace GameEngineForms
+namespace GameEngineForms.Services
 {
     public static class DrawServices
-    {
-        internal delegate void DrawDelegate(object sender, PaintEventArgs e);
-        internal static event DrawDelegate GameCycle;
-        public static void InvokeDraw(object sender, PaintEventArgs e) => GameCycle?.Invoke(sender, e);
-
-
-        internal delegate void DestructorDelegate();
-        internal static event DestructorDelegate Destructor;
-        public static void InvokeDestructor() => Destructor?.Invoke();
-
-
-
-        public static Point GetMousePosition()
-        {
-            Rectangle screenRectangle = GetForm().RectangleToScreen(GetForm().ClientRectangle);
-
-            return new Point
-            {
-                X = Control.MousePosition.X - screenRectangle.X,
-                Y = Control.MousePosition.Y - screenRectangle.Y
-            };
-        }
-        public static Form GetForm() => GameObjects.GameToRun;
-        public static void SetForm(Form form) {
-            GameObjects.GameToRun = form;   
-        }
-        public static PictureBox GetPictureBox() => GameObjects.PictureBox;
-
-
-
+    {             
         public static void DrawLine(Color color, float thickness, Point startPoint, Point endPoint)
         {
             GameObjects.LineGeometry.Add(
@@ -72,7 +45,8 @@ namespace GameEngineForms
         public static void DrawRect(Color? strokeColor, Color? fillColor, float? strokeThickness, Point startPoint, int width, int height, int? cornerRadius, float? angle)
         {
             GameObjects.RectGeometry.Add(
-                new Rect { 
+                new Rect
+                { 
                     StrokeColor = strokeColor,
                     FillColor = fillColor,
                     StrokeThickness = strokeThickness,
@@ -107,7 +81,5 @@ namespace GameEngineForms
                     Angle = angle
                 });
         }
-
-
     }
 }

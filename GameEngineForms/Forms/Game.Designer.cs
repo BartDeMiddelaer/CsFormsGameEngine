@@ -1,4 +1,4 @@
-﻿namespace GameEngineForms
+﻿namespace GameEngineForms.Forms
 {
     partial class Game
     {

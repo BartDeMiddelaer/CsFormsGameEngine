@@ -6,13 +6,14 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
-using static GameEngineForms.DrawServices;
-using static GameEngineForms.Resources;
+using static GameEngineForms.Services.DrawServices;
+using static GameEngineForms.Services.EventServices;
+using static GameEngineForms.Resources.ResourcesDeclaration;
 
 
 
 
-namespace GameEngineForms
+namespace GameEngineForms.Forms
 {
     public partial class Game : Form
     {
@@ -35,10 +36,10 @@ namespace GameEngineForms
 
         }
 
+
         private void DrawLoop(object sender, PaintEventArgs e)
         {
-            DrawEllipse(null, Color.Red, 0, new Point(200, 200), 150, 350, x);
-
+            DrawEllipse(null, Color.Red, 0, new Point(200, 200), 150, 180, x);
             x++;
         }
     }

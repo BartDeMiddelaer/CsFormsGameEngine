@@ -7,8 +7,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Diagnostics;
-using static GameEngineForms.DrawServices;
-using static GameEngineForms.Resources;
+using static GameEngineForms.Services.DrawServices;
+using static GameEngineForms.Services.EventServices;
+using static GameEngineForms.Resources.ResourcesDeclaration;
 using System.Drawing.Drawing2D;
 
 namespace GameEngineForms
@@ -21,8 +22,8 @@ namespace GameEngineForms
         static void Main()
         {
             fpsDisplyInterval.Start();
-            GetPictureBox().Dock = DockStyle.Fill;
-            GetPictureBox().Paint += new PaintEventHandler((object sender, PaintEventArgs e) => Render(sender,e));
+            GameObjects.PictureBox.Dock = DockStyle.Fill;
+            GameObjects.PictureBox.Paint += new PaintEventHandler((object sender, PaintEventArgs e) => Render(sender,e));
             
             Application.Idle += (object sender, EventArgs e) => {
                 while (IdelTiming.IsApplicationIdle())
@@ -32,8 +33,8 @@ namespace GameEngineForms
                   
                     if (fpsDisplyInterval.ElapsedMilliseconds > 50)
                     {
-                        GetForm().Text =                                              
-                        $"ScreenSize: {GetPictureBox().Width} x {GetPictureBox().Height}" +
+                        GameObjects.FormToRun.Text =                                              
+                        $"ScreenSize: {GameObjects.PictureBox.Width} x {GameObjects.PictureBox.Height}" +
                         $"   Objects: {GameObjects.ObjectCount}" +
                         $"   FrameTiming: {IdelTiming.GetFps()} ";
 
@@ -43,7 +44,7 @@ namespace GameEngineForms
                     InvokeDestructor();
                 }
             };
-            Application.Run(GetForm());
+            Application.Run(GameObjects.FormToRun);
         }
 
 
@@ -80,8 +81,8 @@ namespace GameEngineForms
         }
         private static void Update()
         {
-            GetPictureBox().Refresh();
-            GetForm().Controls.Add(GetPictureBox());
+            GameObjects.PictureBox.Refresh();
+            GameObjects.FormToRun.Controls.Add(GameObjects.PictureBox);
             Interlocked.Increment(ref IdelTiming.frameCount);
         }
         private static void Render(object sender, PaintEventArgs e)
