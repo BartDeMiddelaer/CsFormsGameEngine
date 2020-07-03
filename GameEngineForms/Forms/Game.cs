@@ -10,16 +10,14 @@ using static GameEngineForms.Services.DrawServices;
 using static GameEngineForms.Services.EventServices;
 using static GameEngineForms.Services.MathServices;
 using static GameEngineForms.Resources.ResourcesDeclaration;
-
-
+using System.Numerics;
 
 namespace GameEngineForms.Forms
 {
 
     public partial class Game : Form
     {
-        float x = 0;
-
+        float x = 1;
         public Game()
         {
             ClientSize = new Size(800, 600);        
@@ -38,9 +36,11 @@ namespace GameEngineForms.Forms
 
         private void DrawLoop(object sender, PaintEventArgs e)
         {
-            DrawText("Rubbe is GAYyyy", new Font("Arial", 80), Color.Black, GetMousePosition(), x);
+           x += x.MovePPS(100);
 
-            x += 0.5f;
+
+            DrawEllipse(Color.Black,null,2,new Vector2(100,100),100,110,x);
+
         }
     }
 }

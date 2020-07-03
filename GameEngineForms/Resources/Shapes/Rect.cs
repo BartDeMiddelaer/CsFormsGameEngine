@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Numerics;
 using System.Text;
 
 namespace GameEngineForms.Resources.Shapes
@@ -8,7 +9,7 @@ namespace GameEngineForms.Resources.Shapes
     public struct Rect
     {
         public float? Angle { get; set; }
-        public Point StartPoint { get; set; }
+        public Vector2 StartPoint { get; set; }
         public float? StrokeThickness { get; set; }
         public Color? StrokeColor { get; set; }
         public Color? FillColor { get; set; }

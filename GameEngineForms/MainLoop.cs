@@ -11,6 +11,7 @@ using static GameEngineForms.Services.DrawServices;
 using static GameEngineForms.Services.EventServices;
 using static GameEngineForms.Resources.ResourcesDeclaration;
 using System.Drawing.Drawing2D;
+using System.Numerics;
 
 namespace GameEngineForms
 {
@@ -18,8 +19,7 @@ namespace GameEngineForms
     {
         static readonly Stopwatch fpsDisplyInterval = new Stopwatch();
 
-        [STAThread]
-        static void Main()
+        [STAThread] static void Main()
         {
             fpsDisplyInterval.Start();
             GameObjects.PictureBox.Dock = DockStyle.Fill;
@@ -83,7 +83,7 @@ namespace GameEngineForms
         {
             GameObjects.PictureBox.Refresh();
             GameObjects.FormToRun.Controls.Add(GameObjects.PictureBox);
-            Interlocked.Increment(ref IdelTiming.frameCount);
+            Interlocked.Increment(ref IdelTiming.GetframeCount());
         }
         private static void Render(object sender, PaintEventArgs e)
         {
@@ -91,13 +91,20 @@ namespace GameEngineForms
             InvokeDraw(sender,e);
 
             GameObjects.LineGeometry.ForEach(l => {
-                e.Graphics.DrawLine(new Pen(l.StrokeColor,l.Thickness), l.StartPoint, l.EndPoint ?? new Point());
+
+                e.Graphics.DrawLine(new Pen(l.StrokeColor,l.Thickness),
+                    new Point((int)Math.Round(l.StartPoint.X), (int)Math.Round(l.StartPoint.Y)),
+                    new Point((int)Math.Round(l.EndPoint.X), (int)Math.Round(l.EndPoint.Y)));
                 GameObjects.ObjectCount++;
             });
 
             GameObjects.RectGeometry.ForEach(r => {
 
-                var path = RoundedRect(new Rectangle(r.StartPoint, new Size(r.Width, r.Height)), r.CornerRadius ?? 0);
+                var path = RoundedRect(new Rectangle(
+                    new Point(
+                        (int)Math.Round(r.StartPoint.X), 
+                        (int)Math.Round(r.StartPoint.Y)), 
+                    new Size(r.Width, r.Height)), r.CornerRadius ?? 0);
 
                 if (r.Angle != null || r.Angle != 0)
                 {
@@ -123,10 +130,20 @@ namespace GameEngineForms
                 else
                 {
                     if (r.FillColor != null)
-                        e.Graphics.FillRectangle(new SolidBrush(r.FillColor ?? Color.Transparent), new Rectangle(r.StartPoint, new Size(r.Width, r.Height)));
+                        e.Graphics.FillRectangle(new SolidBrush(r.FillColor ?? Color.Transparent), 
+                            new Rectangle(
+                                new Point(
+                                    (int)Math.Round(r.StartPoint.X), 
+                                    (int)Math.Round(r.StartPoint.Y)),
+                                new Size(r.Width, r.Height)));
 
                     if (r.StrokeColor != null)
-                        e.Graphics.DrawRectangle(new Pen(r.FillColor ?? Color.Transparent), new Rectangle(r.StartPoint, new Size(r.Width,r.Height)));
+                        e.Graphics.DrawRectangle(new Pen(r.FillColor ?? Color.Transparent), 
+                            new Rectangle(
+                                new Point(
+                                    (int)Math.Round(r.StartPoint.X), 
+                                    (int)Math.Round(r.StartPoint.Y)), 
+                                new Size(r.Width,r.Height)));
 
                     GameObjects.ObjectCount++;
 
@@ -141,14 +158,20 @@ namespace GameEngineForms
                 if (c.FillColor != null)
                     e.Graphics.FillEllipse(
                     new SolidBrush(c.FillColor ?? Color.Transparent),
-                    new Rectangle(new Point(c.CenterPoint.X - (int)Math.Round(c.Radius), c.CenterPoint.Y - (int)Math.Round(c.Radius)),
-                    new Size((int)Math.Round(c.Radius * 2), (int)Math.Round(c.Radius * 2))));
+                    new Rectangle(
+                        new Point(
+                            (int)Math.Round(c.CenterPoint.X - c.Radius), 
+                            (int)Math.Round(c.CenterPoint.Y - c.Radius)),
+                        new Size((int)Math.Round(c.Radius * 2), (int)Math.Round(c.Radius * 2))));
 
                 if (c.StrokeColor != null || c.StrokeThickness != 0)
                     e.Graphics.DrawEllipse(
                     new Pen(c.StrokeColor ?? Color.Transparent, c.StrokeThickness ?? 0),
-                    new Rectangle(new Point(c.CenterPoint.X - (int)Math.Round(c.Radius), c.CenterPoint.Y - (int)Math.Round(c.Radius)),
-                    new Size((int)Math.Round(c.Radius * 2), (int)Math.Round(c.Radius * 2))));
+                    new Rectangle(
+                        new Point(
+                            (int)Math.Round(c.CenterPoint.X - c.Radius), 
+                            (int)Math.Round(c.CenterPoint.Y - c.Radius)),
+                        new Size((int)Math.Round(c.Radius * 2), (int)Math.Round(c.Radius * 2))));
 
 
                 e.Graphics.ResetTransform();
@@ -172,14 +195,20 @@ namespace GameEngineForms
                 if (el.FillColor != null)
                     e.Graphics.FillEllipse(
                     new SolidBrush(el.FillColor ?? Color.Transparent),
-                    new Rectangle(new Point(el.CenterPoint.X - (int)Math.Round((float)el.Width / 2), el.CenterPoint.Y - (int)Math.Round((float)el.Height / 2)),
-                    new Size((int)Math.Round((float)el.Width), (int)Math.Round((float)el.Height))));
+                    new Rectangle(
+                        new Point(
+                            (int)Math.Round(el.CenterPoint.X - el.Width / 2), 
+                            (int)Math.Round(el.CenterPoint.Y - el.Height / 2)),
+                        new Size((int)Math.Round((float)el.Width), (int)Math.Round((float)el.Height))));
 
                 if (el.StrokeColor != null || el.StrokeThickness != 0)
                     e.Graphics.DrawEllipse(
                     new Pen(el.StrokeColor ?? Color.Transparent, el.StrokeThickness ?? 0),
-                    new Rectangle(new Point(el.CenterPoint.X - (int)Math.Round((float)el.Width / 2), el.CenterPoint.Y - (int)Math.Round((float)el.Height / 2)),
-                    new Size((int)Math.Round((float)el.Width), (int)Math.Round((float)el.Height))));
+                    new Rectangle(
+                        new Point(
+                            (int)Math.Round(el.CenterPoint.X - el.Width / 2), 
+                            (int)Math.Round(el.CenterPoint.Y - el.Height / 2)),
+                        new Size((int)Math.Round((float)el.Width), (int)Math.Round((float)el.Height))));
 
 
                 e.Graphics.ResetTransform();
@@ -202,9 +231,11 @@ namespace GameEngineForms
                     e.Graphics.TranslateTransform(-moveX, -moveY);
                 }
 
-                e.Graphics.DrawString(t.Context, t.Font ?? new Font("Arial", 10), new SolidBrush(t.FontColor), t.StartPoint);
+                e.Graphics.DrawString(t.Context, t.Font ?? new Font("Arial", 10), new SolidBrush(t.FontColor), new Point((int)Math.Round(t.StartPoint.X), (int)Math.Round(t.StartPoint.Y)));
 
                 e.Graphics.ResetTransform();
+                GameObjects.ObjectCount++;
+
             });
 
         }
@@ -226,22 +257,24 @@ namespace GameEngineForms
     }
     public static class IdelTiming
     {
+
         static DateTime lastCheckTime = DateTime.Now;
-        public static long frameCount = 0;
+        static long frameCount = 0;
+
+        public static ref long GetframeCount() => ref frameCount;
+        public static DateTime GetlastCheckTime() => lastCheckTime;
 
         [DllImport("user32.dll")]
         public static extern int PeekMessage(NativeMessage message, IntPtr window, uint filterMin, uint filterMax, uint remove);
         public static bool IsApplicationIdle() => PeekMessage(new NativeMessage(), IntPtr.Zero, (uint)0, (uint)0, (uint)0) == 0;
                
-        public static string GetFps()
+        public static double GetFps()
         {
             double secondsElapsed = (DateTime.Now - lastCheckTime).TotalSeconds;
-            long count = System.Threading.Interlocked.Exchange(ref frameCount, 0);
+            long count = Interlocked.Exchange(ref frameCount, 0);
             double fps = count / secondsElapsed;
             lastCheckTime = DateTime.Now;
-            return Math.Round(fps, 2).ToString();
+            return Math.Round(fps, 2);
         }
-
     }
-
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Numerics;
 using System.Text;
 using System.Windows.Forms;
 using GameEngineForms.Resources;
@@ -11,7 +12,7 @@ namespace GameEngineForms.Services
 {
     public static class DrawServices
     {             
-        public static void DrawLine(Color color, float thickness, Point startPoint, Point endPoint)
+        public static void DrawLine(Color color, float thickness, Vector2 startPoint, Vector2 endPoint)
         {
             GameObjects.LineGeometry.Add(
                 new Line
@@ -24,7 +25,7 @@ namespace GameEngineForms.Services
                     Length = null
                 });
         }
-        public static void DrawLine(Color color, float thickness, Point startPoint, int length, float angle)
+        public static void DrawLine(Color color, float thickness, Vector2 startPoint, int length, float angle)
         {
 
             var endPoint_x = startPoint.X + Math.Cos((Math.PI / 180.0) * angle) * length;
@@ -34,7 +35,7 @@ namespace GameEngineForms.Services
                 new Line
                 {
                     StartPoint = startPoint,
-                    EndPoint = new Point((int)endPoint_x, (int)endPoint_y),
+                    EndPoint = new Vector2((int)endPoint_x, (int)endPoint_y),
                     StrokeColor = color,
                     Thickness = thickness,
                     Angle = angle,
@@ -42,7 +43,7 @@ namespace GameEngineForms.Services
                 });
         }
 
-        public static void DrawRect(Color? strokeColor, Color? fillColor, float? strokeThickness, Point startPoint, int width, int height, int? cornerRadius, float? angle)
+        public static void DrawRect(Color? strokeColor, Color? fillColor, float? strokeThickness, Vector2 startPoint, int width, int height, int? cornerRadius, float? angle)
         {
             GameObjects.RectGeometry.Add(
                 new Rect
@@ -57,7 +58,7 @@ namespace GameEngineForms.Services
                     Angle = angle
                 });      
         }
-        public static void DrawCircle(Point centerPoint, float radius, Color? fillColor, Color? strokeColor, float strokeThickness)
+        public static void DrawCircle(Vector2 centerPoint, float radius, Color? fillColor, Color? strokeColor, float strokeThickness)
         {
             GameObjects.CircleGeometry.Add( new Circle { 
                 CenterPoint = centerPoint,
@@ -67,7 +68,7 @@ namespace GameEngineForms.Services
                 StrokeThickness = strokeThickness
             });
         }
-        public static void DrawEllipse(Color? strokeColor, Color? fillColor, float? strokeThickness, Point centerPoint, int width, int height, float? angle)
+        public static void DrawEllipse(Color? strokeColor, Color? fillColor, float? strokeThickness, Vector2 centerPoint, int width, int height, float? angle)
         {
             GameObjects.EllipseGeometry.Add(
                 new Ellipse
@@ -81,7 +82,7 @@ namespace GameEngineForms.Services
                     Angle = angle
                 });
         }
-        public static void DrawText(string context, Font font, Color color, Point startPoint, float? angle)
+        public static void DrawText(string context, Font font, Color color, Vector2 startPoint, float? angle)
         {
             GameObjects.TextGeometry.Add(new Text
             {
