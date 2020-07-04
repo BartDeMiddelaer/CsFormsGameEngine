@@ -20,28 +20,28 @@ namespace GameEngineForms
         static readonly Stopwatch fpsDisplyInterval = new Stopwatch();
 
         [STAThread] static void Main()
-        {
+        {       
             fpsDisplyInterval.Start();
-            GameObjects.PictureBox.Dock = DockStyle.Fill;
-            GameObjects.PictureBox.Paint += new PaintEventHandler((object sender, PaintEventArgs e) => Render(sender,e));
-            
+            GameObjects.DrawContainer.Dock = DockStyle.Fill;
+            GameObjects.DrawContainer.Paint += new PaintEventHandler((object sender, PaintEventArgs e) => Render(sender,e));
+            InvokeInitialize();
+
             Application.Idle += (object sender, EventArgs e) => {
                 while (IdelTiming.IsApplicationIdle())
-                {         
+                {                   
                     Update();
                     CollisionDetection();
                   
-                    if (fpsDisplyInterval.ElapsedMilliseconds > 50)
+                    if (fpsDisplyInterval.ElapsedMilliseconds > 100)
                     {
                         GameObjects.FormToRun.Text =                                              
-                        $"ScreenSize: {GameObjects.PictureBox.Width} x {GameObjects.PictureBox.Height}" +
+                        $"ScreenSize: {GameObjects.DrawContainer.Width} x {GameObjects.DrawContainer.Height}" +
                         $"   Objects: {GameObjects.ObjectCount}" +
                         $"   FrameTiming: {IdelTiming.GetFps()} ";
 
                         fpsDisplyInterval.Restart();
                     }
-
-                    InvokeDestructor();
+                    InvokeDestructor();    
                 }
             };
             Application.Run(GameObjects.FormToRun);
@@ -81,13 +81,12 @@ namespace GameEngineForms
         }
         private static void Update()
         {
-            GameObjects.PictureBox.Refresh();
-            GameObjects.FormToRun.Controls.Add(GameObjects.PictureBox);
+            GameObjects.DrawContainer.Refresh();
+            GameObjects.FormToRun.Controls.Add(GameObjects.DrawContainer);
             Interlocked.Increment(ref IdelTiming.GetframeCount());
         }
         private static void Render(object sender, PaintEventArgs e)
         {
-          
             InvokeDraw(sender,e);
 
             GameObjects.LineGeometry.ForEach(l => {
@@ -215,7 +214,7 @@ namespace GameEngineForms
                 GameObjects.ObjectCount++;
 
              });
-
+            
             GameObjects.TextGeometry.ForEach(t => {
 
 

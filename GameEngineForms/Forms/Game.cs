@@ -17,29 +17,32 @@ namespace GameEngineForms.Forms
 
     public partial class Game : Form
     {
-        float x = 1;
-        public Game()
-        {
-            ClientSize = new Size(800, 600);        
-            BackColor = Color.BlanchedAlmond;
+        List<Vector4> Vectors = new List<Vector4>();
+        Random rand = new Random();
+
+        public Game() {
+
+            AutoScaleMode = AutoScaleMode.Inherit;
+            ClientSize = new Size(800, 450);
+            StartPosition = FormStartPosition.CenterScreen;
             GameCycle += DrawLoop;
-            KeyDown += KeyDownLisener;
+            Initialize += InitializeElements;
+            BackColor = Color.BurlyWood;
+
         }
-
-        private void KeyDownLisener(object sender, KeyEventArgs e)
+              
+        private void InitializeElements()
         {
-
+            for (int i = 0; i < 5; i++)
+                Vectors.Add(new Vector4(rand.Next(0, Width),rand.Next(0, Height),rand.Next(0, Width),rand.Next(0, Height)));     
             
 
         }
 
-
         private void DrawLoop(object sender, PaintEventArgs e)
-        {
-           x += x.MovePPS(100);
+        {             
+            Vectors.ForEach(v => DrawLine(Color.Black, 1, new Vector2(v.X, v.Y), new Vector2(v.Z,v.W)));
 
-
-            DrawEllipse(Color.Black,null,2,new Vector2(100,100),100,110,x);
 
         }
     }

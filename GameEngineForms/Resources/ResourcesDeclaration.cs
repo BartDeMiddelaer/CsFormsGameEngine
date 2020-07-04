@@ -33,7 +33,7 @@ namespace GameEngineForms.Resources
 
         // Life Time Porpertys -----------------------------------------------------
         public Form FormToRun { get; set; } = new Game();
-        public PictureBox PictureBox { get; set; } = new PictureBox();
+        public PictureBox DrawContainer { get; set; } = new PictureBox();
 
         // -------------------------------------------------------------------------
 

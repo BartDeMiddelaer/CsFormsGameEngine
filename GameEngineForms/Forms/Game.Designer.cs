@@ -1,4 +1,10 @@
-﻿namespace GameEngineForms.Forms
+﻿using System;
+using System.Diagnostics;
+using System.Drawing;
+using System.Windows.Forms;
+using static GameEngineForms.Services.EventServices;
+
+namespace GameEngineForms.Forms
 {
     partial class Game
     {
@@ -18,6 +24,7 @@
                 components.Dispose();
             }
             base.Dispose(disposing);
-        }
+        }     
+
     }
 }
