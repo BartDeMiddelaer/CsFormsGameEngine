@@ -21,7 +21,11 @@ namespace GameEngineForms.Forms
         public Game() => Initialize += () => {
            
             GameCycle += DrawLoop;
-            SetSaticSreenSize(new Size(800, 600), true);
+
+            ClientSize = new Size(800, 600);
+            FormBorderStyle = FormBorderStyle.FixedSingle;
+            MaximizeBox = false;
+            TopMost = true;
 
             BackColor = Color.BurlyWood;
             StartPosition = FormStartPosition.CenterScreen;

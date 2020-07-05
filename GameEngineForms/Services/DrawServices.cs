@@ -12,14 +12,7 @@ namespace GameEngineForms.Services
 {
     public static class DrawServices
     {
-        public static void SetSaticSreenSize(Size size, bool alwaysOnTop)
-        {
-            GameObjects.FormToRun.ClientSize = size;
-            GameObjects.FormToRun.MinimumSize = size;
-            GameObjects.FormToRun.MaximumSize = size;
-            GameObjects.FormToRun.MaximizeBox = false;
-            GameObjects.FormToRun.TopMost = alwaysOnTop;
-        }
+
         public static void DrawLine(Color color, float thickness, Vector2 startPoint, Vector2 endPoint)
         {
             GameObjects.LineGeometry.Add(
