@@ -21,10 +21,12 @@ namespace GameEngineForms.Forms
         public Game() => Initialize += () => {
            
             GameCycle += DrawLoop;
+            SetSaticSreenSize(new Size(800, 600), true);
+
             BackColor = Color.BurlyWood;
-            ClientSize = new Size(800, 450);
             StartPosition = FormStartPosition.CenterScreen;
             GameObjects.RenderMode = SmoothingMode.HighSpeed;
+            
         };
 
         public void DrawLoop(object sender, PaintEventArgs e)

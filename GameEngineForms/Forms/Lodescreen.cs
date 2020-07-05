@@ -53,7 +53,7 @@ namespace GameEngineForms.Forms
                 int teller = 2;
                 var path = RoundedRect(new Rectangle(200, 0, Width - 200, Height), 50);
                 var strokePath = RoundedRect(new Rectangle(2, 20, Width, Height-40), 60);
-
+            
                 e.Graphics.FillPath(new SolidBrush(Color.White), path);
                 e.Graphics.DrawPath(new Pen (new SolidBrush(Color.White),5), strokePath);
 
@@ -73,9 +73,9 @@ namespace GameEngineForms.Forms
 
                     for (int x = 0; x < 101; x++)
                         bubbelBorder.AddLine(
-                            200 + (x * 10), 
+                            190+ (x * 10), 
                             (new Random().Next(300 + b, 302 + b)) + (b* teller) /3,
-                            200 + (x * 10), 
+                            190 + (x * 10), 
                             (new Random().Next(300 + b, 302 + b)) + (b* teller) /3
                         );
                 
@@ -96,7 +96,6 @@ namespace GameEngineForms.Forms
                 $"Game instance Loading: {gameFormLoading.Status}  \n" +
                 $"Initialize: { showMinimumTime.Status} \n", 
                 new Font("Arial", 10), Brushes.Red, 210, Height - 240);
-
 
             if (bitmapLoading.IsCompleted && showMinimumTime.IsCompleted && soundLoading.IsCompleted && gameFormLoading.IsCompleted)
             {               
