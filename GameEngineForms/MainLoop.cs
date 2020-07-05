@@ -22,13 +22,18 @@ namespace GameEngineForms
         [STAThread] static void Main()
         {       
             fpsDisplyInterval.Start();
+            if(GameObjects.FormToRun != null)
             GameObjects.FormToRun.HandleCreated += FormToRun_HandleCreated;
 
-            Application.Run(GameObjects.Lodescreen);
             InvokeInitialize();
+            GameObjects.Lodescreen.ShowDialog();
+
+            Application.Run( GameObjects.Lodescreen);
+
+
         }
 
-        private static void FormToRun_HandleCreated(object sender, EventArgs e)
+        public static void FormToRun_HandleCreated(object sender, EventArgs e)
         {
             GameObjects.DrawContainer.Dock = DockStyle.Fill;
             GameObjects.DrawContainer.Paint += new PaintEventHandler((object sender, PaintEventArgs e) => Render(sender, e));

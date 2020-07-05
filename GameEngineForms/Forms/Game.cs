@@ -21,7 +21,9 @@ namespace GameEngineForms.Forms
         List<Vector4> Vectors = new List<Vector4>();
         Random rand = new Random();
 
-        public Game() => Initialize += () =>
+        public Game() => Initialize += Game_Initialize;
+
+        public void Game_Initialize()
         {
             GameCycle += DrawLoop;
             BackColor = Color.BurlyWood;
@@ -29,13 +31,17 @@ namespace GameEngineForms.Forms
             StartPosition = FormStartPosition.CenterScreen;
             GameObjects.RenderMode = SmoothingMode.HighSpeed;
 
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 5000; i++)
                 Vectors.Add(new Vector4(rand.Next(0, Width), rand.Next(0, Height), rand.Next(0, Width), rand.Next(0, Height)));
-        };
+        }
 
-        private void DrawLoop(object sender, PaintEventArgs e)
-        {            
+        public void DrawLoop(object sender, PaintEventArgs e)
+        {
+
+            
             Vectors.ForEach(v => DrawLine(Color.Black, 1, new Vector2(v.X, v.Y), new Vector2(v.Z,v.W)));
+
+
         }
     }
 }
