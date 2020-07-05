@@ -12,6 +12,7 @@ using static GameEngineForms.Services.EventServices;
 using static GameEngineForms.Resources.DynamicResources;
 using System.Drawing.Drawing2D;
 using System.Numerics;
+using GameEngineForms.Forms;
 
 namespace GameEngineForms
 {
@@ -24,9 +25,8 @@ namespace GameEngineForms
             fpsDisplyInterval.Start();
             if(GameObjects.FormToRun != null)
             GameObjects.FormToRun.HandleCreated += FormToRun_HandleCreated;
-            GameObjects.Lodescreen.ShowDialog();
 
-            Application.Run( GameObjects.Lodescreen);
+            new Lodescreen().ShowDialog();
         }
 
         public static void FormToRun_HandleCreated(object sender, EventArgs e)

@@ -3,6 +3,8 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
 using static GameEngineForms.Services.EventServices;
+using static GameEngineForms.Resources.DynamicResources;
+
 
 namespace GameEngineForms.Forms
 {
@@ -23,6 +25,7 @@ namespace GameEngineForms.Forms
             {
                 components.Dispose();
             }
+            
             base.Dispose(disposing);
         }     
 

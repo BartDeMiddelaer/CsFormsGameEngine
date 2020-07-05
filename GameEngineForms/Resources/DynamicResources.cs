@@ -35,7 +35,6 @@ namespace GameEngineForms.Resources
 
         // Life Time Porpertys -----------------------------------------------------
         public Form FormToRun { get; set; } = new Game();
-        public Form Lodescreen { get; set; } = new Lodescreen();
         public PictureBox DrawContainer { get; set; } = new PictureBox();
         public SmoothingMode RenderMode { get; set; } = SmoothingMode.HighSpeed;
         public int MinimumLodeScreenTime { get; set; } = 1000;
