@@ -6,12 +6,12 @@ using System.Text;
 using System.Windows.Forms;
 using GameEngineForms.Resources;
 using GameEngineForms.Resources.Shapes;
-using static GameEngineForms.Resources.ResourcesDeclaration;
+using static GameEngineForms.Resources.DynamicResources;
 
 namespace GameEngineForms.Services
 {
     public static class DrawServices
-    {             
+    {
         public static void DrawLine(Color color, float thickness, Vector2 startPoint, Vector2 endPoint)
         {
             GameObjects.LineGeometry.Add(

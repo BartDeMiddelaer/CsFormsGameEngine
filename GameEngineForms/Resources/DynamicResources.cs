@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Text;
 using System.Windows.Forms;
 using GameEngineForms.Forms;
@@ -10,10 +12,10 @@ using static GameEngineForms.Services.EventServices;
 
 namespace GameEngineForms.Resources
 {
-    public sealed class ResourcesDeclaration
+    public sealed class DynamicResources
     {
         // Singelton ---------------------------------------------------------------
-        public static ResourcesDeclaration GameObjects
+        public static DynamicResources GameObjects
         {
             get
             {
@@ -21,19 +23,22 @@ namespace GameEngineForms.Resources
                 {
                     if (instance == null)
                     {
-                        instance = new ResourcesDeclaration();
+                        instance = new DynamicResources();
                     }
                     return instance;
                 }
             }
         }
-        private static ResourcesDeclaration instance = null;
+        private static DynamicResources instance = null;
         private static readonly object padlock = new object();
         // -------------------------------------------------------------------------
 
         // Life Time Porpertys -----------------------------------------------------
         public Form FormToRun { get; set; } = new Game();
+        public Form Lodescreen { get; set; } = new Lodescreen();
         public PictureBox DrawContainer { get; set; } = new PictureBox();
+        public SmoothingMode RenderMode { get; set; } = SmoothingMode.HighSpeed;
+
 
         // -------------------------------------------------------------------------
 
@@ -47,7 +52,7 @@ namespace GameEngineForms.Resources
         public int ObjectCount { get; set; } = 0;
 
         // GameCycle Porpertys Reseting
-        public ResourcesDeclaration() => Destructor += () => {
+        public DynamicResources() => Destructor += () => {
 
             LineGeometry.Clear();
             RectGeometry.Clear();

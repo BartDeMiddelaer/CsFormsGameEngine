@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using GameEngineForms.Resources.Shapes;
-using static GameEngineForms.Resources.ResourcesDeclaration;
+using static GameEngineForms.Resources.DynamicResources;
 
 
 namespace GameEngineForms.Services

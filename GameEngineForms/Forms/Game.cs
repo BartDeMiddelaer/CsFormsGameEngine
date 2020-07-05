@@ -9,8 +9,9 @@ using System.Windows.Forms;
 using static GameEngineForms.Services.DrawServices;
 using static GameEngineForms.Services.EventServices;
 using static GameEngineForms.Services.MathServices;
-using static GameEngineForms.Resources.ResourcesDeclaration;
+using static GameEngineForms.Resources.DynamicResources;
 using System.Numerics;
+using System.Drawing.Drawing2D;
 
 namespace GameEngineForms.Forms
 {
@@ -20,30 +21,21 @@ namespace GameEngineForms.Forms
         List<Vector4> Vectors = new List<Vector4>();
         Random rand = new Random();
 
-        public Game() {
-
-            AutoScaleMode = AutoScaleMode.Inherit;
+        public Game() => Initialize += () =>
+        {
+            GameCycle += DrawLoop;
+            BackColor = Color.BurlyWood;
             ClientSize = new Size(800, 450);
             StartPosition = FormStartPosition.CenterScreen;
-            GameCycle += DrawLoop;
-            Initialize += InitializeElements;
-            BackColor = Color.BurlyWood;
+            GameObjects.RenderMode = SmoothingMode.HighSpeed;
 
-        }
-              
-        private void InitializeElements()
-        {
-            for (int i = 0; i < 5; i++)
-                Vectors.Add(new Vector4(rand.Next(0, Width),rand.Next(0, Height),rand.Next(0, Width),rand.Next(0, Height)));     
-            
-
-        }
+            for (int i = 0; i < 10; i++)
+                Vectors.Add(new Vector4(rand.Next(0, Width), rand.Next(0, Height), rand.Next(0, Width), rand.Next(0, Height)));
+        };
 
         private void DrawLoop(object sender, PaintEventArgs e)
-        {             
+        {            
             Vectors.ForEach(v => DrawLine(Color.Black, 1, new Vector2(v.X, v.Y), new Vector2(v.Z,v.W)));
-
-
         }
     }
 }

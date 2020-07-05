@@ -9,7 +9,7 @@ using System.Windows.Forms;
 using System.Diagnostics;
 using static GameEngineForms.Services.DrawServices;
 using static GameEngineForms.Services.EventServices;
-using static GameEngineForms.Resources.ResourcesDeclaration;
+using static GameEngineForms.Resources.DynamicResources;
 using System.Drawing.Drawing2D;
 using System.Numerics;
 
@@ -22,32 +22,37 @@ namespace GameEngineForms
         [STAThread] static void Main()
         {       
             fpsDisplyInterval.Start();
-            GameObjects.DrawContainer.Dock = DockStyle.Fill;
-            GameObjects.DrawContainer.Paint += new PaintEventHandler((object sender, PaintEventArgs e) => Render(sender,e));
+            GameObjects.FormToRun.HandleCreated += FormToRun_HandleCreated;
+
+            Application.Run(GameObjects.Lodescreen);
             InvokeInitialize();
+        }
+
+        private static void FormToRun_HandleCreated(object sender, EventArgs e)
+        {
+            GameObjects.DrawContainer.Dock = DockStyle.Fill;
+            GameObjects.DrawContainer.Paint += new PaintEventHandler((object sender, PaintEventArgs e) => Render(sender, e));
 
             Application.Idle += (object sender, EventArgs e) => {
                 while (IdelTiming.IsApplicationIdle())
-                {                   
+                {
                     Update();
                     CollisionDetection();
-                  
+
                     if (fpsDisplyInterval.ElapsedMilliseconds > 100)
                     {
-                        GameObjects.FormToRun.Text =                                              
+                        GameObjects.FormToRun.Text =
                         $"ScreenSize: {GameObjects.DrawContainer.Width} x {GameObjects.DrawContainer.Height}" +
                         $"   Objects: {GameObjects.ObjectCount}" +
                         $"   FrameTiming: {IdelTiming.GetFps()} ";
 
                         fpsDisplyInterval.Restart();
                     }
-                    InvokeDestructor();    
+
+                    InvokeDestructor();
                 }
             };
-            Application.Run(GameObjects.FormToRun);
         }
-
-
         static GraphicsPath RoundedRect(Rectangle bounds, int radius)
         {
             int diameter = radius * 2;
@@ -87,6 +92,8 @@ namespace GameEngineForms
         }
         private static void Render(object sender, PaintEventArgs e)
         {
+            e.Graphics.SmoothingMode = GameObjects.RenderMode;
+
             InvokeDraw(sender,e);
 
             GameObjects.LineGeometry.ForEach(l => {
