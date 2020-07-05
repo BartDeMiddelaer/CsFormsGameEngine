@@ -19,6 +19,7 @@ namespace GameEngineForms.Forms
     public partial class Game : Form
     {
         public Game() => Initialize += () => {
+           
             GameCycle += DrawLoop;
             BackColor = Color.BurlyWood;
             ClientSize = new Size(800, 450);

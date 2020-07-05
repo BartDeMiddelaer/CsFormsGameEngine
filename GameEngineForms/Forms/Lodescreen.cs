@@ -37,7 +37,7 @@ namespace GameEngineForms.Forms
 
             tikker.Tick += (object sender, EventArgs e) => DrawContainer.Refresh(); 
             tikker.Start();
-            tikker.Interval = 100;
+            tikker.Interval = 10;
             gameFormLoading.Start();
             showMinimumTime.Start();
             bitmapLoading.Start();
