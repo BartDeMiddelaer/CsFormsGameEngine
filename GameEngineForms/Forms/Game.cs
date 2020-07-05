@@ -31,15 +31,18 @@ namespace GameEngineForms.Forms
             StartPosition = FormStartPosition.CenterScreen;
             GameObjects.RenderMode = SmoothingMode.HighSpeed;
 
-            for (int i = 0; i < 5000; i++)
-                Vectors.Add(new Vector4(rand.Next(0, Width), rand.Next(0, Height), rand.Next(0, Width), rand.Next(0, Height)));
+           
         }
 
         public void DrawLoop(object sender, PaintEventArgs e)
         {
+            Color a = new Color().RandomColor();
 
-            
-            Vectors.ForEach(v => DrawLine(Color.Black, 1, new Vector2(v.X, v.Y), new Vector2(v.Z,v.W)));
+            Vectors.Clear();
+            for (int i = 0; i < 5000; i++)
+                Vectors.Add(new Vector4(rand.Next(0, Width), rand.Next(0, Height), rand.Next(0, Width), rand.Next(0, Height)));
+
+            Vectors.ForEach(v => DrawLine(a, 1, new Vector2(v.X, v.Y), new Vector2(v.Z,v.W)));
 
 
         }

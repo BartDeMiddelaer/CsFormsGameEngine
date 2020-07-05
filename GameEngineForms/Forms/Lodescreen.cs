@@ -22,7 +22,8 @@ namespace GameEngineForms.Forms
     public partial class Lodescreen : Form
     {
         PictureBox DrawContainer = new PictureBox();
-        Task BitmapLoading = new Task(new Action(() => {BitmapResources = new BitmapRepo().Resources;}));
+        Task fakeTest = new Task(new Action(() => { BitmapResources = new BitmapRepo().Resources; Thread.Sleep(1000); }));
+        Task bitmapLoading = new Task(new Action(() => {BitmapResources = new BitmapRepo().Resources;}));
 
         System.Windows.Forms.Timer tikker = new System.Windows.Forms.Timer();
 
@@ -40,8 +41,10 @@ namespace GameEngineForms.Forms
 
             tikker.Tick += Tikker_Tick;
             tikker.Start();
-            tikker.Interval = 100;
-            BitmapLoading.Start();
+            tikker.Interval = 1;
+            fakeTest.Start();
+            bitmapLoading.Start();
+
         }
 
         private void Tikker_Tick(object sender, EventArgs e)
@@ -66,11 +69,11 @@ namespace GameEngineForms.Forms
             e.Graphics.DrawString("Forms", new Font("Arial", 20), Brushes.Gray, 430, 85);
             e.Graphics.DrawString("Bart De Middelaer", new Font("Arial", 7), Brushes.Black, 212, 115);
 
-            e.Graphics.DrawString($"BitmapsLoding: {BitmapLoading.Status}", new Font("Arial", 10), Brushes.Black, 210, Height - 220);
+            e.Graphics.DrawString($"BitmapsLoding: {bitmapLoading.Status}", new Font("Arial", 10), Brushes.Black, 210, Height - 240);
+            e.Graphics.DrawString($"Fake loding: {fakeTest.Status}", new Font("Arial", 10), Brushes.Black, 210, Height - 220);
 
-
-            if (BitmapLoading.IsCompleted)
-            {
+            if (bitmapLoading.IsCompleted && fakeTest.IsCompleted)
+            {               
                 Close(); Hide();
                 if (!GameObjects.FormToRun.IsHandleCreated)GameObjects.FormToRun.ShowDialog();          
             }

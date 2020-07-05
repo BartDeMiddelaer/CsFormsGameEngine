@@ -20,11 +20,11 @@ namespace GameEngineForms.Resources
         public BitmapRepo()
         {
 
-           /* for (long i = 0; i < 25000000; i++)
+            for (long i = 0; i < 55000000; i++)
             {
                 Resources.Add(new BitmapInfo());
 
-            }*/
+            }
 
         }
         public List<BitmapInfo> Resources { get; set; } = new List<BitmapInfo>();

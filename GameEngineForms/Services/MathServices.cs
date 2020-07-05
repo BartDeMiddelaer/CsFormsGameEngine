@@ -109,9 +109,9 @@ namespace GameEngineForms.Services
         }
 
         // Divers Extensions ----------
-        public static void RandomColor(ref this Color col)
+        public static Color RandomColor( this Color col)
         {
-            col = Color.FromArgb(new Random().Next(0, 256), new Random().Next(0, 256), new Random().Next(0, 256));        
+            return  Color.FromArgb(new Random().Next(0, 256), new Random().Next(0, 256), new Random().Next(0, 256));        
         }
 
 
