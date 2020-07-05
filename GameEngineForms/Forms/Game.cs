@@ -18,33 +18,17 @@ namespace GameEngineForms.Forms
 
     public partial class Game : Form
     {
-        List<Vector4> Vectors = new List<Vector4>();
-        Random rand = new Random();
-
-        public Game() => Initialize += Game_Initialize;
-
-        public void Game_Initialize()
-        {
+        public Game() => Initialize += () => {
             GameCycle += DrawLoop;
             BackColor = Color.BurlyWood;
             ClientSize = new Size(800, 450);
             StartPosition = FormStartPosition.CenterScreen;
             GameObjects.RenderMode = SmoothingMode.HighSpeed;
-
-           
-        }
+        };
 
         public void DrawLoop(object sender, PaintEventArgs e)
-        {
-            Color a = new Color().RandomColor();
-
-            Vectors.Clear();
-            for (int i = 0; i < 5000; i++)
-                Vectors.Add(new Vector4(rand.Next(0, Width), rand.Next(0, Height), rand.Next(0, Width), rand.Next(0, Height)));
-
-            Vectors.ForEach(v => DrawLine(a, 1, new Vector2(v.X, v.Y), new Vector2(v.Z,v.W)));
-
-
-        }
+        {      
+           
+        }      
     }
 }

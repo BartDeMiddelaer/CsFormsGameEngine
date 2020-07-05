@@ -1,31 +1,27 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 using static GameEngineForms.Resources.StaticResources;
 using static GameEngineForms.Resources.DynamicResources;
 using static GameEngineForms.Services.EventServices;
-using static GameEngineForms.Services.DrawServices;
-using static GameEngineForms.MainLoop;
-using System.Numerics;
 using System.Drawing.Drawing2D;
 using System.Threading;
 using System.Threading.Tasks;
 using GameEngineForms.Resources;
-using System.Diagnostics;
+using Timer = System.Windows.Forms.Timer;
+using System.Collections.Generic;
+using GameEngineForms.Services;
 
 namespace GameEngineForms.Forms
 {
     public partial class Lodescreen : Form
     {
-        PictureBox DrawContainer = new PictureBox();
-        Task fakeTest = new Task(new Action(() => { BitmapResources = new BitmapRepo().Resources; Thread.Sleep(1000); }));
-        Task bitmapLoading = new Task(new Action(() => {BitmapResources = new BitmapRepo().Resources;}));
-
-        System.Windows.Forms.Timer tikker = new System.Windows.Forms.Timer();
+        readonly PictureBox DrawContainer = new PictureBox();
+        readonly Task gameFormLoading = new Task(InvokeInitialize);
+        readonly Task showMinimumTime = new Task(() =>  Thread.Sleep(GameObjects.MinimumLodeScreenTime));
+        readonly Task bitmapLoading = new Task(() => BitmapResources = new BitmapRepo().Resources);
+        readonly Task soundLoading = new Task(() => SoundResources = new SoundRepo().Resources);
+        readonly Timer tikker = new Timer();
 
         public Lodescreen()
         {
@@ -39,40 +35,70 @@ namespace GameEngineForms.Forms
             DrawContainer.Paint += Render;
             Controls.Add(DrawContainer);
 
-            tikker.Tick += Tikker_Tick;
+            tikker.Tick += (object sender, EventArgs e) => DrawContainer.Refresh(); 
             tikker.Start();
-            tikker.Interval = 1;
-            fakeTest.Start();
+            tikker.Interval = 100;
+            gameFormLoading.Start();
+            showMinimumTime.Start();
             bitmapLoading.Start();
+            soundLoading.Start();
 
-        }
-
-        private void Tikker_Tick(object sender, EventArgs e)
-        {
-            DrawContainer.Refresh();
         }
 
         private void Render(object sender, PaintEventArgs e)
         {
-            e.Graphics.SmoothingMode = SmoothingMode.HighQuality;
-            // Shapes ---------------------------------------------------------------------------------
-            var path = RoundedRect(new Rectangle(200, 0, Width - 200, Height), 50);
-            e.Graphics.FillPath(new SolidBrush(Color.White), path);
+            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            #region // anemations ------------------------------
 
-            var strokePath = RoundedRect(new Rectangle(0, 20, Width, Height-40), 60);
-            e.Graphics.DrawPath(new Pen (new SolidBrush(Color.White),1), strokePath);
+                int teller = 2;
+                var path = RoundedRect(new Rectangle(200, 0, Width - 200, Height), 50);
+                var strokePath = RoundedRect(new Rectangle(2, 20, Width, Height-40), 60);
 
+                e.Graphics.FillPath(new SolidBrush(Color.White), path);
+                e.Graphics.DrawPath(new Pen (new SolidBrush(Color.White),5), strokePath);
 
-            // Text -----------------------------------------------------------------------------------
+                for (int x = 0; x < 50; x++)
+                {
+                    var diamiter = new Random().Next(0, 20);
+                    e.Graphics.DrawEllipse(new Pen(Color.Gray, 2), new Rectangle(
+                        new Random().Next(200,Width),
+                        new Random().Next(350, Height),
+                        diamiter, diamiter));
+
+               
+                }              
+                for (int b = 0; b < 30; b+= 5)
+                {    
+                    var bubbelBorder = new GraphicsPath();
+
+                    for (int x = 0; x < 101; x++)
+                        bubbelBorder.AddLine(
+                            200 + (x * 10), 
+                            (new Random().Next(300 + b, 302 + b)) + (b* teller) /3,
+                            200 + (x * 10), 
+                            (new Random().Next(300 + b, 302 + b)) + (b* teller) /3
+                        );
+                
+                    e.Graphics.DrawPath(new Pen(Color.Gray, teller), bubbelBorder);
+                    teller++;
+                }
+            #endregion
+
+            // Text ------------------------------------
             e.Graphics.DrawString("Game", new Font("Arial", 50), Brushes.White, 0, 50);
             e.Graphics.DrawString("Engine", new Font("Arial", 50), Brushes.Gray, 200, 50);
-            e.Graphics.DrawString("Forms", new Font("Arial", 20), Brushes.Gray, 430, 85);
+            e.Graphics.DrawString("Made in winForms", new Font("Arial", 15), Brushes.Red, 430, 92);
             e.Graphics.DrawString("Bart De Middelaer", new Font("Arial", 7), Brushes.Black, 212, 115);
 
-            e.Graphics.DrawString($"BitmapsLoding: {bitmapLoading.Status}", new Font("Arial", 10), Brushes.Black, 210, Height - 240);
-            e.Graphics.DrawString($"Fake loding: {fakeTest.Status}", new Font("Arial", 10), Brushes.Black, 210, Height - 220);
+            e.Graphics.DrawString(              
+                $"Bitmaps Loding: {bitmapLoading.Status} \n" +
+                $"Sound Loading: {soundLoading.Status} \n" +
+                $"Game instance Loading: {gameFormLoading.Status}  \n" +
+                $"Initialize: { showMinimumTime.Status} \n", 
+                new Font("Arial", 10), Brushes.Red, 210, Height - 240);
 
-            if (bitmapLoading.IsCompleted && fakeTest.IsCompleted)
+
+            if (bitmapLoading.IsCompleted && showMinimumTime.IsCompleted && soundLoading.IsCompleted && gameFormLoading.IsCompleted)
             {               
                 Close(); Hide();
                 if (!GameObjects.FormToRun.IsHandleCreated)GameObjects.FormToRun.ShowDialog();          

@@ -95,23 +95,23 @@ namespace GameEngineForms.Services
                 : new Vector2(x, y);
 
         }
-        public static void IntersectionNearest_LineToLine(ref this Vector2 value, Vector2 s1, Vector2 e1, List<Line> lines)
-        { 
 
-        
-        }
+      //public static void IntersectionNearest_LineToLine(ref this Vector2 value, Vector2 s1, Vector2 e1, List<Line> lines)
+       
 
-        public static void RandomVector2(ref this Vector2 vector)
-        { 
-            vector = new Vector2(
-                new Random().Next(0, GameObjects.DrawContainer.Width),
-                new Random().Next(0, GameObjects.DrawContainer.Height));       
+    
+        public static Vector2 RandomVector2(this Vector2 vector)
+        {
+            vector.X = new Random().Next(0, GameObjects.DrawContainer.Width);
+            vector.Y = new Random().Next(0, GameObjects.DrawContainer.Height);
+            return vector;
         }
 
         // Divers Extensions ----------
         public static Color RandomColor( this Color col)
         {
-            return  Color.FromArgb(new Random().Next(0, 256), new Random().Next(0, 256), new Random().Next(0, 256));        
+            col = Color.FromArgb(new Random().Next(0, 256), new Random().Next(0, 256), new Random().Next(0, 256));
+            return col;      
         }
 
 
