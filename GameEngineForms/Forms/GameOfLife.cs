@@ -18,14 +18,18 @@ namespace GameEngineForms.Forms
 {
     public partial class GameOfLife : Form
     {
-        Random rand = new Random();
-        List<Rectangle> drawBlocks = new List<Rectangle>();
+        readonly Random rand = new Random();
+        readonly List<Rectangle> drawBlocks = new List<Rectangle>();
+        readonly Timer KillingTime = new Timer();
 
+        readonly int celDrawIntervals = 6, celOfset = 2;
         int[,] oldCels, newCels;
-        int celDrawIntervals = 5, celOfset = 2, maxX, maxY;
+        int maxX, maxY;
 
         public GameOfLife() {
-
+            KillingTime.Start();
+            KillingTime.Interval = 5;
+            KillingTime.Tick += (object sender, EventArgs e) => KillTheFuckers();
             Initialize += GameOfLife_Initialize;
             GameCycle += DrawLoop;
             ClientSize = new Size(1280, 900);
@@ -39,32 +43,62 @@ namespace GameEngineForms.Forms
 
         private void GameOfLife_Initialize()
         {          
-            GameObjects.RenderMode = SmoothingMode.None;
+            GameObjects.RenderMode = SmoothingMode.HighSpeed;
 
             maxX = (Width / celDrawIntervals);
-            maxY = (Height / celDrawIntervals) +500;
+            maxY = (Height / celDrawIntervals);
 
             oldCels = new int[maxX, maxY];
             newCels = new int[maxX, maxY];
 
+            if(false) // Random
             for (int x = 0; x < maxX; x++)
                 for (int y = 0; y < maxY; y++)
                     newCels[x, y] = rand.Next(0, 5);
+
+            if (true) // glidergun
+            {
+                for (int x = 0; x < maxX; x++)
+                    for (int y = 0; y < maxY; y++)
+                        newCels[x, y] = 0;
+
+                GlitterGun(0, 0);
+                GlitterGun(181, 0);
+                GlitterGun(-2, 133);
+                GlitterGun(181, 133);
+                GlitterGun(90, 72);         
+            }
+            
+        }
+
+        private void GlitterGun(int x, int y)
+        {
+            newCels[2+x, 2 + y] = 1;     newCels[3 + x, 2 + y] = 1;   newCels[2 + x, 3 + y] = 1;   newCels[3 + x, 3 + y] = 1;
+            newCels[9 + x, 2 + y] = 1;   newCels[10 + x, 2 + y] = 1;  newCels[10 + x, 3 + y] = 1;  newCels[9 + x, 3 + y] = 1;
+            newCels[6 + x, 6 + y] = 1;   newCels[6 + x, 5 + y] = 1;   newCels[7 + x, 5 + y] = 1;   newCels[7 + x, 6 + y] = 1;
+            newCels[33 + x, 12 + y] = 1; newCels[33 + x, 13 + y] = 1; newCels[34 + x, 12 + y] = 1; newCels[34 + x, 13 + y] = 1;
+            newCels[22 + x, 19 + y] = 1; newCels[22 + x, 20 + y] = 1; newCels[23 + x, 19 + y] = 1; newCels[23 + x, 21 + y] = 1;
+            newCels[24 + x, 21 + y] = 1; newCels[25 + x, 21 + y] = 1; newCels[25 + x, 22 + y] = 1; newCels[24 + x, 11 + y] = 1;
+            newCels[25 + x, 11 + y] = 1; newCels[27 + x, 11 + y] = 1; newCels[28 + x, 11 + y] = 1; newCels[23 + x, 12 + y] = 1;
+            newCels[29 + x, 12 + y] = 1; newCels[23 + x, 13 + y] = 1; newCels[30 + x, 13 + y] = 1; newCels[23 + x, 14 + y] = 1;
+            newCels[24 + x, 14 + y] = 1; newCels[25 + x, 14 + y] = 1; newCels[29 + x, 14 + y] = 1; newCels[28 + x, 15 + y] = 1;
         }
 
         private void DrawLoop(object sender, PaintEventArgs e)
         {
-            KillTheFuckers();
             drawBlocks.Clear();
-
+         
             for (int x = 0; x < maxX; x++)           
                 for (int y = 0; y < maxY; y++)             
                     if (newCels[x, y] == 1)
                         drawBlocks.Add(new Rectangle(x * celDrawIntervals, y * celDrawIntervals, celDrawIntervals - celOfset, celDrawIntervals - celOfset));             
                 
-            
+           
+            if(drawBlocks.Count > 1)
+                e.Graphics.DrawRectangles(Pens.Red, drawBlocks.ToArray());
+
             GameObjects.ObjectCount = drawBlocks.Count;
-            e.Graphics.DrawRectangles(Pens.Red, drawBlocks.ToArray());
+
         }
 
         private void KillTheFuckers()
