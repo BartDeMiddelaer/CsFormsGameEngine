@@ -100,7 +100,7 @@ namespace GameEngineForms.Forms
             if (bitmapLoading.IsCompleted && showMinimumTime.IsCompleted && soundLoading.IsCompleted && gameFormLoading.IsCompleted)
             {               
                 Close(); Hide();
-                if (!GameObjects.FormToRun.IsHandleCreated)GameObjects.FormToRun.ShowDialog();          
+                GameObjects.FormToRun.ShowDialog();          
             }
         }
 

@@ -8,7 +8,7 @@ using static GameEngineForms.Resources.DynamicResources;
 
 namespace GameEngineForms.Forms
 {
-    partial class Game
+    partial class GameOfLife
     {
         /// <summary>
         /// Required designer variable.
