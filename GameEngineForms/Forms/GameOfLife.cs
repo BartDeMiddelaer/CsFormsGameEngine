@@ -95,15 +95,17 @@ namespace GameEngineForms.Forms
         
         private void DrawLoop(object sender, PaintEventArgs e)
         {
-            DrawCels(e);
+            MakeCels();
           
-            MakeQuadrants(e, true,false);
+            MakeQuadrants(true,false);
 
-            UpdateCels(true);     
+            UpdateCels(true);
+
+            DrawScene(e);
         }
 
 
-        private void DrawCels(PaintEventArgs e)
+        private void MakeCels()
         {
             celDraw.Clear();
 
@@ -114,13 +116,7 @@ namespace GameEngineForms.Forms
                         celDraw.Add(new Rectangle(x * celDymSqwd, y * celDymSqwd, celDymSqwd, celDymSqwd));
                         quadrants[x / 10, y / 10]++;
                     }
-
-            if (celDraw.Count != 0)
-            {
-                e.Graphics.FillRectangles(Brushes.Green, celDraw.ToArray());
-                e.Graphics.DrawRectangles(Pens.DarkRed, celDraw.ToArray());
-            }
-
+                                             
             GameObjects.ObjectCount = celDraw.Count;
         }
         private void UpdateCels(bool Quadrants)
@@ -149,9 +145,7 @@ namespace GameEngineForms.Forms
                     }
             }
             else { UpdateCels_NOQuadrants(); }
-           
-            quadrants = new int[quadrantsInX, quadrantsInY];
-            subQuadrants = new int[quadrantsInX, quadrantsInY];
+                      
         }
         private void UpdateCels_NOQuadrants()
         {
@@ -166,16 +160,28 @@ namespace GameEngineForms.Forms
                     if (oldCels[x, y] == 1 && Livingneighbors(x, y) > 4 || oldCels[x, y] == 1 && Livingneighbors(x, y) < 2) { quadrants[x / 10, y / 10]++; newCels[x, y] = 0; }
                     if (oldCels[x, y] == 0 && Livingneighbors(x, y) == 3) { newCels[x, y] = 1; }
                 }
-            }                
-                
+            }                                         
+        }
+        private void DrawScene(PaintEventArgs e)
+        {
+            if (quadDraw.Count != 0)
+            {
+                e.Graphics.DrawRectangles(new Pen(Color.FromArgb(20, 20, 20), 0.2f), supQaudDraw.ToArray());
+                e.Graphics.DrawRectangles(Pens.Gray, quadDraw.ToArray());
+            }
+
+            if (celDraw.Count != 0)
+            {
+                e.Graphics.FillRectangles(Brushes.Green, celDraw.ToArray());
+                e.Graphics.DrawRectangles(Pens.DarkRed, celDraw.ToArray());
+            }
 
             quadrants = new int[quadrantsInX, quadrantsInY];
             subQuadrants = new int[quadrantsInX, quadrantsInY];
         }
 
 
-
-        private void MakeQuadrants(PaintEventArgs e,bool draw,bool info)
+        private void MakeQuadrants(bool draw,bool info)
         {
             quadDraw.Clear();
             supQaudDraw.Clear();
@@ -206,13 +212,6 @@ namespace GameEngineForms.Forms
                             supQaudDraw.Add(new Rectangle(x * (10 * celDymSqwd), y * (10 * celDymSqwd), (10 * celDymSqwd), (10 * celDymSqwd)));
                         }
                     }
-
-               
-
-                if (quadDraw.Count != 0)
-                e.Graphics.DrawRectangles(new Pen(Color.FromArgb(20, 20, 20), 0.2f), supQaudDraw.ToArray());
-                    e.Graphics.DrawRectangles(Pens.Gray, quadDraw.ToArray());
-
             }
             else
             {
@@ -222,23 +221,7 @@ namespace GameEngineForms.Forms
                             MarkSubQuadrants(x, y);
             }
           
-        }
-        private void DrawSubQuadrants(PaintEventArgs e)
-        {
-            
-
-            for (int x = 0; x < quadrantsInX; x++)
-                for (int y = 0; y < quadrantsInY; y++)
-                {
-                    if (subQuadrants[x, y] != 0)
-                    {
-                        
-                    }
-                }
-
-
-
-        }
+        }      
         private void MarkSubQuadrants(int x, int y)
         {            
             
@@ -275,7 +258,6 @@ namespace GameEngineForms.Forms
                         : subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] += 1;
                            
         }
-
 
 
         private int Livingneighbors(int x, int y)
