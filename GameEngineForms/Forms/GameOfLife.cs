@@ -20,55 +20,58 @@ namespace GameEngineForms.Forms
     {
         readonly Random rand = new Random();
         readonly List<Rectangle> drawBlocks = new List<Rectangle>();
-        readonly Timer KillingTime = new Timer();
+        int[,] oldCels, newCels, quadrants, subQuadrants;
 
-        readonly int celDrawIntervals = 6, celOfset = 2;
-        int[,] oldCels, newCels;
-        int maxX, maxY;
+        readonly static int
+            celDymSqwd = 2,
+            // moet deelbaar door 10 zijn
+            maxCelsInX = 620,
+            maxCelsInY = 560,
+            quadrantsInX = maxCelsInX / 10,
+            quadrantsInY = maxCelsInY / 10;
+
+
 
         public GameOfLife() {
-            KillingTime.Start();
-            KillingTime.Interval = 5;
-            KillingTime.Tick += (object sender, EventArgs e) => KillTheFuckers();
             Initialize += GameOfLife_Initialize;
             GameCycle += DrawLoop;
-            ClientSize = new Size(1280, 900);
+            ClientSize = new Size(celDymSqwd * maxCelsInX, celDymSqwd * maxCelsInY);
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
-            TopMost = true;
-            BackColor = Color.Magenta;
+            //TopMost = true;
+            BackColor = Color.Black;
             TransparencyKey = Color.Magenta;
             StartPosition = FormStartPosition.CenterScreen;
         }
 
         private void GameOfLife_Initialize()
-        {          
+        {
             GameObjects.RenderMode = SmoothingMode.HighSpeed;
 
-            maxX = (Width / celDrawIntervals);
-            maxY = (Height / celDrawIntervals);
+            oldCels = new int[maxCelsInX, maxCelsInY];
+            newCels = new int[maxCelsInX, maxCelsInY];
+            quadrants = new int[quadrantsInX, quadrantsInY];
+            subQuadrants = new int[quadrantsInX, quadrantsInY];
 
-            oldCels = new int[maxX, maxY];
-            newCels = new int[maxX, maxY];
 
-            if(false) // Random
-            for (int x = 0; x < maxX; x++)
-                for (int y = 0; y < maxY; y++)
-                    newCels[x, y] = rand.Next(0, 5);
+            if (true) // Random
+            for (int x = 0; x < maxCelsInX; x++)
+                for (int y = 0; y < maxCelsInY; y++)
+                    newCels[x, y] = rand.Next(0, 2);
 
             if (true) // glidergun
             {
-                for (int x = 0; x < maxX; x++)
-                    for (int y = 0; y < maxY; y++)
+                for (int x = 0; x < maxCelsInX; x++)
+                    for (int y = 0; y < maxCelsInY; y++)
                         newCels[x, y] = 0;
 
                 GlitterGun(0, 0);
-                GlitterGun(181, 0);
-                GlitterGun(-2, 133);
-                GlitterGun(181, 133);
-                GlitterGun(90, 72);         
+                GlitterGun(150, 0);
+                GlitterGun(150, 170);
+                GlitterGun(500, 100);
+
             }
-            
+                   
         }
 
         private void GlitterGun(int x, int y)
@@ -81,54 +84,169 @@ namespace GameEngineForms.Forms
             newCels[24 + x, 21 + y] = 1; newCels[25 + x, 21 + y] = 1; newCels[25 + x, 22 + y] = 1; newCels[24 + x, 11 + y] = 1;
             newCels[25 + x, 11 + y] = 1; newCels[27 + x, 11 + y] = 1; newCels[28 + x, 11 + y] = 1; newCels[23 + x, 12 + y] = 1;
             newCels[29 + x, 12 + y] = 1; newCels[23 + x, 13 + y] = 1; newCels[30 + x, 13 + y] = 1; newCels[23 + x, 14 + y] = 1;
-            newCels[24 + x, 14 + y] = 1; newCels[25 + x, 14 + y] = 1; newCels[29 + x, 14 + y] = 1; newCels[28 + x, 15 + y] = 1;
+            newCels[24 + x, 14 + y] = 1; newCels[25 + x, 14 + y] = 1; newCels[29 + x, 14 + y] = 1; newCels[28 + x, 15 + y] = 1; 
         }
-
+        
         private void DrawLoop(object sender, PaintEventArgs e)
         {
-            drawBlocks.Clear();
-         
-            for (int x = 0; x < maxX; x++)           
-                for (int y = 0; y < maxY; y++)             
-                    if (newCels[x, y] == 1)
-                        drawBlocks.Add(new Rectangle(x * celDrawIntervals, y * celDrawIntervals, celDrawIntervals - celOfset, celDrawIntervals - celOfset));             
-                
-           
-            if(drawBlocks.Count > 1)
-                e.Graphics.DrawRectangles(Pens.Red, drawBlocks.ToArray());
+            DrawCelsAndRegistrateQuadrants(e);
 
-            GameObjects.ObjectCount = drawBlocks.Count;
+            
+            //DrawSubQuadrants(e);
+
+
+            //DarwQuadrants(e);
+            
+
+            UpdateCels();
 
         }
 
-        private void KillTheFuckers()
+        private void DrawCelsAndRegistrateQuadrants(PaintEventArgs e)
+        {
+            drawBlocks.Clear();
+
+            for (int x = 0; x < maxCelsInX; x++)
+                for (int y = 0; y < maxCelsInY; y++)
+                    if (newCels[x, y] == 1)
+                    {
+                        quadrants[x / 10, y / 10]++;
+                        drawBlocks.Add(new Rectangle(x * celDymSqwd, y * celDymSqwd, celDymSqwd, celDymSqwd));
+                    }
+
+            if (drawBlocks.Count != 0)
+            {
+                e.Graphics.FillRectangles(Brushes.Green, drawBlocks.ToArray());
+                e.Graphics.DrawRectangles(Pens.DarkRed, drawBlocks.ToArray());
+            }
+
+            GameObjects.ObjectCount = drawBlocks.Count;
+        }
+
+        private void DarwQuadrants(PaintEventArgs e)
+        {
+            drawBlocks.Clear();
+
+            for (int x = 0; x < quadrantsInX; x++)
+                for (int y = 0; y < quadrantsInY; y++)
+                {
+                    if (quadrants[x, y] != 0)
+                    {
+                        DrawText($"{quadrants[x, y]}", new Font("", celDymSqwd * 2), Color.White, new Vector2(x * (10 * celDymSqwd), y * (10 * celDymSqwd)), null);
+                        drawBlocks.Add(new Rectangle(x * (10 * celDymSqwd), y * (10 * celDymSqwd), (10 * celDymSqwd), (10 * celDymSqwd)));                       
+                    }
+                }
+
+            if (drawBlocks.Count != 0)
+                e.Graphics.DrawRectangles(Pens.Gray, drawBlocks.ToArray());
+          
+        }
+
+        private void DrawSubQuadrants(PaintEventArgs e)
+        {
+            drawBlocks.Clear();
+            MarkSubQuadrants();
+
+            for (int x = 0; x < quadrantsInX; x++)
+                for (int y = 0; y < quadrantsInY; y++)
+                {
+                    if (subQuadrants[x, y] != 0)
+                    {
+                        DrawText($"{subQuadrants[x, y]}", new Font("", celDymSqwd * 2), Color.White, new Vector2(x * (10 * celDymSqwd), y * (10 * celDymSqwd)), null);
+                        drawBlocks.Add(new Rectangle(x * (10 * celDymSqwd), y * (10 * celDymSqwd), (10 * celDymSqwd), (10 * celDymSqwd)));
+                    }
+                }
+
+            if (drawBlocks.Count != 0)
+                e.Graphics.DrawRectangles(new Pen(Color.FromArgb(20,20,20),0.2f), drawBlocks.ToArray());
+
+            subQuadrants = new int[quadrantsInX, quadrantsInY];
+
+        }
+
+        private void MarkSubQuadrants()
+        {
+            for (int x = 0; x < quadrantsInX; x++)
+                for (int y = 0; y < quadrantsInY; y++)
+                {
+                    if (quadrants[x, y] != 0)
+                    {
+                        subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y) + quadrantsInY) % quadrantsInY] = quadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y) + quadrantsInY) % quadrantsInY] != 0
+                            ? subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y) + quadrantsInY) % quadrantsInY]
+                            : subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y) + quadrantsInY) % quadrantsInY] += 1;
+
+                        subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y) + quadrantsInY) % quadrantsInY] = quadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y) + quadrantsInY) % quadrantsInY] != 0
+                            ? subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y) + quadrantsInY) % quadrantsInY]
+                            : subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y) + quadrantsInY) % quadrantsInY] += 1;
+
+                        subQuadrants[((x) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] = quadrants[((x) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] != 0
+                            ? subQuadrants[((x) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY]
+                            : subQuadrants[((x) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] += 1;
+
+                        subQuadrants[((x) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] = quadrants[((x) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] != 0
+                            ? subQuadrants[((x) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY]
+                            : subQuadrants[((x) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] += 1;
+
+                        subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] = quadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] != 0
+                            ? subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] += 1
+                            : subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] += 1;
+
+                        subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] = quadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] != 0
+                            ? subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY]
+                            : subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] += 1;
+
+                        subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] = quadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] != 0
+                            ? subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY]
+                            : subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] += 1;
+
+                        subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] = quadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] != 0
+                             ? subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY]
+                             : subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] += 1;
+                    }
+                }
+
+        }
+
+        private void UpdateCels()
         {            
             oldCels = newCels;
-            newCels = new int[maxX, maxY];
+            newCels = new int[maxCelsInX, maxCelsInY];
+            quadrants = new int[quadrantsInX, quadrantsInY];
 
-            for (int x = 0; x < maxX; x++)          
-                for (int y = 0; y < maxY; y++)
+            for (int qwadX = 0; qwadX < quadrantsInX; qwadX++)
+                for (int qwadY = 0; qwadY < quadrantsInY; qwadY++)
                 {
-                    if (oldCels[x, y] == 1 && (Livingneighbors(x, y) == 2 || Livingneighbors(x, y) == 3)) newCels[x, y] = 1;                                                      
-                    if (oldCels[x, y] == 1 && Livingneighbors(x,y) > 4 || oldCels[x, y] == 1 && Livingneighbors(x, y) < 2) newCels[x, y] = 0;
-                    if (oldCels[x, y] == 0 && Livingneighbors(x, y) == 3) newCels[x, y] = 1;                    
-                }            
+                    if (quadrants[qwadX, qwadY] == 0)
+                        for (int celXindex = 0; celXindex < 10; celXindex++)
+                        {
+                            for (int celYindex = 0; celYindex < 10; celYindex++)
+                            {
+                                int x = (qwadX * 10) + celXindex;
+                                int y = (qwadY * 10) + celYindex;
+                                if (oldCels[x, y] == 1 && (Livingneighbors(x, y) == 2 || Livingneighbors(x, y) == 3)) { newCels[x, y] = 1; }
+                                if (oldCels[x, y] == 1 && Livingneighbors(x, y) > 4 || oldCels[x, y] == 1 && Livingneighbors(x, y) < 2) newCels[x, y] = 0;
+                                if (oldCels[x, y] == 0 && Livingneighbors(x, y) == 3) { newCels[x, y] = 1; }
+                            }
+                        }
+                }
+
         }
 
         private int Livingneighbors(int x, int y)
         {
-            int tell = 0;         
+            int tell = 0;
 
-            tell += oldCels[((x + 1) + maxX) % maxX, ((y) + maxY) % maxY] == 1 ? 1 : 0;
-            tell += oldCels[((x - 1) + maxX) % maxX, ((y) + maxY) % maxY] == 1 ? 1 : 0;
-            tell += oldCels[((x) + maxX) % maxX, ((y + 1) + maxY) % maxY] == 1 ? 1 : 0;
-            tell += oldCels[((x) + maxX) % maxX, ((y - 1) + maxY) % maxY] == 1 ? 1 : 0;
-            tell += oldCels[((x + 1) + maxX) % maxX, ((y + 1) + maxY) % maxY] == 1 ? 1 : 0;
-            tell += oldCels[((x - 1) + maxX) % maxX, ((y - 1) + maxY) % maxY] == 1 ? 1 : 0;
-            tell += oldCels[((x - 1) + maxX) % maxX, ((y + 1) + maxY) % maxY] == 1 ? 1 : 0;
-            tell += oldCels[((x + 1) + maxX) % maxX, ((y - 1) + maxY) % maxY] == 1 ? 1 : 0;
-
+            tell += oldCels[((x + 1) + maxCelsInX) % maxCelsInX, ((y) + maxCelsInY) % maxCelsInY] == 1 ? 1 : 0;
+            tell += oldCels[((x - 1) + maxCelsInX) % maxCelsInX, ((y) + maxCelsInY) % maxCelsInY] == 1 ? 1 : 0;
+            tell += oldCels[((x) + maxCelsInX) % maxCelsInX, ((y + 1) + maxCelsInY) % maxCelsInY] == 1 ? 1 : 0;
+            tell += oldCels[((x) + maxCelsInX) % maxCelsInX, ((y - 1) + maxCelsInY) % maxCelsInY] == 1 ? 1 : 0;
+            tell += oldCels[((x + 1) + maxCelsInX) % maxCelsInX, ((y + 1) + maxCelsInY) % maxCelsInY] == 1 ? 1 : 0;
+            tell += oldCels[((x - 1) + maxCelsInX) % maxCelsInX, ((y - 1) + maxCelsInY) % maxCelsInY] == 1 ? 1 : 0;
+            tell += oldCels[((x - 1) + maxCelsInX) % maxCelsInX, ((y + 1) + maxCelsInY) % maxCelsInY] == 1 ? 1 : 0;
+            tell += oldCels[((x + 1) + maxCelsInX) % maxCelsInX, ((y - 1) + maxCelsInY) % maxCelsInY] == 1 ? 1 : 0;
+            
             return tell;
-        }       
+        }
+
     }
 }
