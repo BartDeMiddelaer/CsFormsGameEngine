@@ -66,15 +66,7 @@ namespace GameEngineForms.Forms
                     for (int y = 0; y < maxCelsInY; y++)
                         newCels[x, y] = 0;
 
-                GlitterGun(0, 0);
-                GlitterGun(100, 100);
-                GlitterGun(200, 200);
-
-                GlitterGun(100, 0);
-                GlitterGun(200, 100);
-                GlitterGun(300, 200);
-
-
+                GlitterGun(Width/5, Height/5);
             }                           
         }
 
