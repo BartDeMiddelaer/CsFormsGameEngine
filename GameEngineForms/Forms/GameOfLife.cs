@@ -19,14 +19,16 @@ namespace GameEngineForms.Forms
     public partial class GameOfLife : Form
     {
         readonly Random rand = new Random();
-        readonly List<Rectangle> drawBlocks = new List<Rectangle>();
+        readonly List<Rectangle> celDraw = new List<Rectangle>();
+        readonly List<Rectangle> supQaudDraw = new List<Rectangle>();
+        readonly List<Rectangle> quadDraw = new List<Rectangle>();
         int[,] oldCels, newCels, quadrants, subQuadrants;
 
         readonly static int
-            celDymSqwd = 2,
+            celDymSqwd = 4,
             // moet deelbaar door 10 zijn
-            maxCelsInX = 620,
-            maxCelsInY = 560,
+            maxCelsInX = 420,
+            maxCelsInY = 260,
             quadrantsInX = maxCelsInX / 10,
             quadrantsInY = maxCelsInY / 10;
 
@@ -38,7 +40,7 @@ namespace GameEngineForms.Forms
             ClientSize = new Size(celDymSqwd * maxCelsInX, celDymSqwd * maxCelsInY);
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
-            //TopMost = true;
+            TopMost = true;
             BackColor = Color.Black;
             TransparencyKey = Color.Magenta;
             StartPosition = FormStartPosition.CenterScreen;
@@ -66,12 +68,16 @@ namespace GameEngineForms.Forms
                         newCels[x, y] = 0;
 
                 GlitterGun(0, 0);
-                GlitterGun(150, 0);
-                GlitterGun(150, 170);
-                GlitterGun(500, 100);
+                GlitterGun(100, 100);
+                GlitterGun(200, 200);
+
+                GlitterGun(100, 0);
+                GlitterGun(200, 100);
+                GlitterGun(300, 200);
+
 
             }
-                   
+          
         }
 
         private void GlitterGun(int x, int y)
@@ -89,148 +95,188 @@ namespace GameEngineForms.Forms
         
         private void DrawLoop(object sender, PaintEventArgs e)
         {
-            DrawCelsAndRegistrateQuadrants(e);
+            DrawCels(e);
+          
+            MakeQuadrants(e, true,false);
 
-            
-            //DrawSubQuadrants(e);
-
-
-            //DarwQuadrants(e);
-            
-
-            UpdateCels();
-
+            UpdateCels(true);     
         }
 
-        private void DrawCelsAndRegistrateQuadrants(PaintEventArgs e)
+
+        private void DrawCels(PaintEventArgs e)
         {
-            drawBlocks.Clear();
+            celDraw.Clear();
 
             for (int x = 0; x < maxCelsInX; x++)
                 for (int y = 0; y < maxCelsInY; y++)
                     if (newCels[x, y] == 1)
                     {
+                        celDraw.Add(new Rectangle(x * celDymSqwd, y * celDymSqwd, celDymSqwd, celDymSqwd));
                         quadrants[x / 10, y / 10]++;
-                        drawBlocks.Add(new Rectangle(x * celDymSqwd, y * celDymSqwd, celDymSqwd, celDymSqwd));
                     }
 
-            if (drawBlocks.Count != 0)
+            if (celDraw.Count != 0)
             {
-                e.Graphics.FillRectangles(Brushes.Green, drawBlocks.ToArray());
-                e.Graphics.DrawRectangles(Pens.DarkRed, drawBlocks.ToArray());
+                e.Graphics.FillRectangles(Brushes.Green, celDraw.ToArray());
+                e.Graphics.DrawRectangles(Pens.DarkRed, celDraw.ToArray());
             }
 
-            GameObjects.ObjectCount = drawBlocks.Count;
+            GameObjects.ObjectCount = celDraw.Count;
+        }
+        private void UpdateCels(bool Quadrants)
+        {
+            oldCels = newCels;
+            newCels = new int[maxCelsInX, maxCelsInY];
+
+            if (Quadrants)
+            {
+                for (int qwadX = 0; qwadX < quadrantsInX; qwadX++)
+                    for (int qwadY = 0; qwadY < quadrantsInY; qwadY++)
+                    {
+                        if (quadrants[qwadX, qwadY] != 0 || subQuadrants[qwadX, qwadY] != 0)
+                            for (int celXindex = 0; celXindex < 10; celXindex++)
+                            {
+                                for (int celYindex = 0; celYindex < 10; celYindex++)
+                                {
+                                    int x = (qwadX * 10) + celXindex;
+                                    int y = (qwadY * 10) + celYindex;
+
+                                    if (oldCels[x, y] == 1 && (Livingneighbors(x, y) == 2 || Livingneighbors(x, y) == 3)) { quadrants[x / 10, y / 10]++; newCels[x, y] = 1; }
+                                    if (oldCels[x, y] == 1 && Livingneighbors(x, y) > 4 || oldCels[x, y] == 1 && Livingneighbors(x, y) < 2) { quadrants[x / 10, y / 10]++; newCels[x, y] = 0; }
+                                    if (oldCels[x, y] == 0 && Livingneighbors(x, y) == 3) { newCels[x, y] = 1; }
+                                }
+                            }
+                    }
+            }
+            else { UpdateCels_NOQuadrants(); }
+           
+            quadrants = new int[quadrantsInX, quadrantsInY];
+            subQuadrants = new int[quadrantsInX, quadrantsInY];
+        }
+        private void UpdateCels_NOQuadrants()
+        {
+            oldCels = newCels;
+            newCels = new int[maxCelsInX, maxCelsInY];
+            
+            for (int x = 0; x < maxCelsInX; x++)
+            {
+                for (int y = 0; y < maxCelsInY; y++)
+                {
+                    if (oldCels[x, y] == 1 && (Livingneighbors(x, y) == 2 || Livingneighbors(x, y) == 3)) { quadrants[x / 10, y / 10]++; newCels[x, y] = 1; }
+                    if (oldCels[x, y] == 1 && Livingneighbors(x, y) > 4 || oldCels[x, y] == 1 && Livingneighbors(x, y) < 2) { quadrants[x / 10, y / 10]++; newCels[x, y] = 0; }
+                    if (oldCels[x, y] == 0 && Livingneighbors(x, y) == 3) { newCels[x, y] = 1; }
+                }
+            }                
+                
+
+            quadrants = new int[quadrantsInX, quadrantsInY];
+            subQuadrants = new int[quadrantsInX, quadrantsInY];
         }
 
-        private void DarwQuadrants(PaintEventArgs e)
+
+
+        private void MakeQuadrants(PaintEventArgs e,bool draw,bool info)
         {
-            drawBlocks.Clear();
+            quadDraw.Clear();
+            supQaudDraw.Clear();
 
-            for (int x = 0; x < quadrantsInX; x++)
-                for (int y = 0; y < quadrantsInY; y++)
-                {
-                    if (quadrants[x, y] != 0)
+            if (draw)
+            {
+                for (int x = 0; x < quadrantsInX; x++)
+                    for (int y = 0; y < quadrantsInY; y++)
                     {
-                        DrawText($"{quadrants[x, y]}", new Font("", celDymSqwd * 2), Color.White, new Vector2(x * (10 * celDymSqwd), y * (10 * celDymSqwd)), null);
-                        drawBlocks.Add(new Rectangle(x * (10 * celDymSqwd), y * (10 * celDymSqwd), (10 * celDymSqwd), (10 * celDymSqwd)));                       
-                    }
-                }
+                        if (quadrants[x, y] != 0)
+                        {
+                            if(info)
+                                DrawText($"{quadrants[x, y]}", new Font("", celDymSqwd * 2), Color.White, new Vector2(x * (10 * celDymSqwd), y * (10 * celDymSqwd)), null);
 
-            if (drawBlocks.Count != 0)
-                e.Graphics.DrawRectangles(Pens.Gray, drawBlocks.ToArray());
+                            quadDraw.Add(new Rectangle(x * (10 * celDymSqwd), y * (10 * celDymSqwd), (10 * celDymSqwd), (10 * celDymSqwd)));
+                            MarkSubQuadrants(x, y);
+                        }
+                    }
+
+                for (int x = 0; x < quadrantsInX; x++)
+                    for (int y = 0; y < quadrantsInY; y++)
+                    {
+                        if (subQuadrants[x, y] != 0)
+                        {
+                            if(info)
+                                DrawText($"{subQuadrants[x, y]}", new Font("", celDymSqwd * 2), Color.White, new Vector2(x * (10 * celDymSqwd), y * (10 * celDymSqwd)), null);
+
+                            supQaudDraw.Add(new Rectangle(x * (10 * celDymSqwd), y * (10 * celDymSqwd), (10 * celDymSqwd), (10 * celDymSqwd)));
+                        }
+                    }
+
+               
+
+                if (quadDraw.Count != 0)
+                e.Graphics.DrawRectangles(new Pen(Color.FromArgb(20, 20, 20), 0.2f), supQaudDraw.ToArray());
+                    e.Graphics.DrawRectangles(Pens.Gray, quadDraw.ToArray());
+
+            }
+            else
+            {
+                for (int x = 0; x < quadrantsInX; x++)
+                    for (int y = 0; y < quadrantsInY; y++)
+                        if (quadrants[x, y] != 0)
+                            MarkSubQuadrants(x, y);
+            }
           
         }
-
         private void DrawSubQuadrants(PaintEventArgs e)
         {
-            drawBlocks.Clear();
-            MarkSubQuadrants();
+            
 
             for (int x = 0; x < quadrantsInX; x++)
                 for (int y = 0; y < quadrantsInY; y++)
                 {
                     if (subQuadrants[x, y] != 0)
                     {
-                        DrawText($"{subQuadrants[x, y]}", new Font("", celDymSqwd * 2), Color.White, new Vector2(x * (10 * celDymSqwd), y * (10 * celDymSqwd)), null);
-                        drawBlocks.Add(new Rectangle(x * (10 * celDymSqwd), y * (10 * celDymSqwd), (10 * celDymSqwd), (10 * celDymSqwd)));
+                        
                     }
                 }
 
-            if (drawBlocks.Count != 0)
-                e.Graphics.DrawRectangles(new Pen(Color.FromArgb(20,20,20),0.2f), drawBlocks.ToArray());
 
-            subQuadrants = new int[quadrantsInX, quadrantsInY];
 
         }
-
-        private void MarkSubQuadrants()
-        {
-            for (int x = 0; x < quadrantsInX; x++)
-                for (int y = 0; y < quadrantsInY; y++)
-                {
-                    if (quadrants[x, y] != 0)
-                    {
-                        subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y) + quadrantsInY) % quadrantsInY] = quadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y) + quadrantsInY) % quadrantsInY] != 0
-                            ? subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y) + quadrantsInY) % quadrantsInY]
-                            : subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y) + quadrantsInY) % quadrantsInY] += 1;
-
-                        subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y) + quadrantsInY) % quadrantsInY] = quadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y) + quadrantsInY) % quadrantsInY] != 0
-                            ? subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y) + quadrantsInY) % quadrantsInY]
-                            : subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y) + quadrantsInY) % quadrantsInY] += 1;
-
-                        subQuadrants[((x) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] = quadrants[((x) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] != 0
-                            ? subQuadrants[((x) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY]
-                            : subQuadrants[((x) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] += 1;
-
-                        subQuadrants[((x) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] = quadrants[((x) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] != 0
-                            ? subQuadrants[((x) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY]
-                            : subQuadrants[((x) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] += 1;
-
-                        subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] = quadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] != 0
-                            ? subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] += 1
-                            : subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] += 1;
-
-                        subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] = quadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] != 0
-                            ? subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY]
-                            : subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] += 1;
-
-                        subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] = quadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] != 0
-                            ? subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY]
-                            : subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] += 1;
-
-                        subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] = quadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] != 0
-                             ? subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY]
-                             : subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] += 1;
-                    }
-                }
-
-        }
-
-        private void UpdateCels()
+        private void MarkSubQuadrants(int x, int y)
         {            
-            oldCels = newCels;
-            newCels = new int[maxCelsInX, maxCelsInY];
-            quadrants = new int[quadrantsInX, quadrantsInY];
+            
+                subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y) + quadrantsInY) % quadrantsInY] = quadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y) + quadrantsInY) % quadrantsInY] != 0
+                    ? subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y) + quadrantsInY) % quadrantsInY]
+                    : subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y) + quadrantsInY) % quadrantsInY] += 1;
 
-            for (int qwadX = 0; qwadX < quadrantsInX; qwadX++)
-                for (int qwadY = 0; qwadY < quadrantsInY; qwadY++)
-                {
-                    if (quadrants[qwadX, qwadY] == 0)
-                        for (int celXindex = 0; celXindex < 10; celXindex++)
-                        {
-                            for (int celYindex = 0; celYindex < 10; celYindex++)
-                            {
-                                int x = (qwadX * 10) + celXindex;
-                                int y = (qwadY * 10) + celYindex;
-                                if (oldCels[x, y] == 1 && (Livingneighbors(x, y) == 2 || Livingneighbors(x, y) == 3)) { newCels[x, y] = 1; }
-                                if (oldCels[x, y] == 1 && Livingneighbors(x, y) > 4 || oldCels[x, y] == 1 && Livingneighbors(x, y) < 2) newCels[x, y] = 0;
-                                if (oldCels[x, y] == 0 && Livingneighbors(x, y) == 3) { newCels[x, y] = 1; }
-                            }
-                        }
-                }
+                subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y) + quadrantsInY) % quadrantsInY] = quadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y) + quadrantsInY) % quadrantsInY] != 0
+                    ? subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y) + quadrantsInY) % quadrantsInY]
+                    : subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y) + quadrantsInY) % quadrantsInY] += 1;
 
+                subQuadrants[((x) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] = quadrants[((x) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] != 0
+                    ? subQuadrants[((x) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY]
+                    : subQuadrants[((x) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] += 1;
+
+                subQuadrants[((x) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] = quadrants[((x) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] != 0
+                    ? subQuadrants[((x) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY]
+                    : subQuadrants[((x) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] += 1;
+
+                subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] = quadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] != 0
+                    ? subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] += 1
+                    : subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] += 1;
+
+                subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] = quadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] != 0
+                    ? subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY]
+                    : subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] += 1;
+
+                subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] = quadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] != 0
+                    ? subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY]
+                    : subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] += 1;
+
+                subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] = quadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] != 0
+                        ? subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY]
+                        : subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] += 1;
+                           
         }
+
+
 
         private int Livingneighbors(int x, int y)
         {
