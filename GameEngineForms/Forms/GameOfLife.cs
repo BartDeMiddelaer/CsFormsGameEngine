@@ -25,7 +25,7 @@ namespace GameEngineForms.Forms
         int[,] oldCels, newCels, quadrants, subQuadrants;
 
         readonly static int
-            celDymSqwd = 4,
+            celDymSqwd = 3,
             // moet deelbaar door 10 zijn
             maxCelsInX = 420,
             maxCelsInY = 260,
@@ -42,7 +42,6 @@ namespace GameEngineForms.Forms
             MaximizeBox = false;
             TopMost = true;
             BackColor = Color.Black;
-            TransparencyKey = Color.Magenta;
             StartPosition = FormStartPosition.CenterScreen;
         }
 
@@ -76,8 +75,7 @@ namespace GameEngineForms.Forms
                 GlitterGun(300, 200);
 
 
-            }
-          
+            }                           
         }
 
         private void GlitterGun(int x, int y)
@@ -97,7 +95,7 @@ namespace GameEngineForms.Forms
         {
             MakeCels();
           
-            MakeQuadrants(true,false);
+            MakeQuadrants(true,true);
 
             UpdateCels(true);
 
@@ -137,8 +135,8 @@ namespace GameEngineForms.Forms
                                     int x = (qwadX * 10) + celXindex;
                                     int y = (qwadY * 10) + celYindex;
 
-                                    if (oldCels[x, y] == 1 && (Livingneighbors(x, y) == 2 || Livingneighbors(x, y) == 3)) { quadrants[x / 10, y / 10]++; newCels[x, y] = 1; }
-                                    if (oldCels[x, y] == 1 && Livingneighbors(x, y) > 4 || oldCels[x, y] == 1 && Livingneighbors(x, y) < 2) { quadrants[x / 10, y / 10]++; newCels[x, y] = 0; }
+                                    if (oldCels[x, y] == 1 && (Livingneighbors(x, y) == 2 || Livingneighbors(x, y) == 3)) {  newCels[x, y] = 1; }
+                                    if (oldCels[x, y] == 1 && Livingneighbors(x, y) > 4 || oldCels[x, y] == 1 && Livingneighbors(x, y) < 2) { newCels[x, y] = 0; }
                                     if (oldCels[x, y] == 0 && Livingneighbors(x, y) == 3) { newCels[x, y] = 1; }
                                 }
                             }
@@ -148,16 +146,13 @@ namespace GameEngineForms.Forms
                       
         }
         private void UpdateCels_NOQuadrants()
-        {
-            oldCels = newCels;
-            newCels = new int[maxCelsInX, maxCelsInY];
-            
+        {            
             for (int x = 0; x < maxCelsInX; x++)
             {
                 for (int y = 0; y < maxCelsInY; y++)
                 {
-                    if (oldCels[x, y] == 1 && (Livingneighbors(x, y) == 2 || Livingneighbors(x, y) == 3)) { quadrants[x / 10, y / 10]++; newCels[x, y] = 1; }
-                    if (oldCels[x, y] == 1 && Livingneighbors(x, y) > 4 || oldCels[x, y] == 1 && Livingneighbors(x, y) < 2) { quadrants[x / 10, y / 10]++; newCels[x, y] = 0; }
+                    if (oldCels[x, y] == 1 && (Livingneighbors(x, y) == 2 || Livingneighbors(x, y) == 3)) { newCels[x, y] = 1; }
+                    if (oldCels[x, y] == 1 && Livingneighbors(x, y) > 4 || oldCels[x, y] == 1 && Livingneighbors(x, y) < 2) { newCels[x, y] = 0; }
                     if (oldCels[x, y] == 0 && Livingneighbors(x, y) == 3) { newCels[x, y] = 1; }
                 }
             }                                         
@@ -166,13 +161,13 @@ namespace GameEngineForms.Forms
         {
             if (quadDraw.Count != 0)
             {
-                e.Graphics.DrawRectangles(new Pen(Color.FromArgb(20, 20, 20), 0.2f), supQaudDraw.ToArray());
-                e.Graphics.DrawRectangles(Pens.Gray, quadDraw.ToArray());
+                e.Graphics.DrawRectangles(new Pen(Color.FromArgb(25, 0, 25), 0.2f), supQaudDraw.ToArray());
+                e.Graphics.DrawRectangles(Pens.Magenta, quadDraw.ToArray());
             }
 
             if (celDraw.Count != 0)
             {
-                e.Graphics.FillRectangles(Brushes.Green, celDraw.ToArray());
+                e.Graphics.FillRectangles(Brushes.Red, celDraw.ToArray());
                 e.Graphics.DrawRectangles(Pens.DarkRed, celDraw.ToArray());
             }
 
