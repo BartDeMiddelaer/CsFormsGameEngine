@@ -18,6 +18,8 @@ namespace GameEngineForms.Forms
 {
     public partial class GameOfLife : Form
     {
+        Button btnPlayPauze, btnQuadrantsUse;
+
         readonly Random rand = new Random();
         readonly List<Rectangle> celDraw = new List<Rectangle>();
         readonly List<Rectangle> supQaudDraw = new List<Rectangle>();
@@ -27,72 +29,70 @@ namespace GameEngineForms.Forms
         readonly static int
             celDymSqwd = 3,
             // moet deelbaar door 10 zijn
-            maxCelsInX = 420,
-            maxCelsInY = 260,
+            maxCelsInX = 400,
+            maxCelsInY = 300,
             quadrantsInX = maxCelsInX / 10,
-            quadrantsInY = maxCelsInY / 10;
+            quadrantsInY = maxCelsInY / 10,
+            widthControlPannal = 200;
+
+        bool running = false,
+             quadrantsUse = true;
 
 
 
         public GameOfLife() {
-            Initialize += GameOfLife_Initialize;
+        
             GameCycle += DrawLoop;
-            ClientSize = new Size(celDymSqwd * maxCelsInX, celDymSqwd * maxCelsInY);
+            ClientSize = new Size((celDymSqwd * maxCelsInX)+ widthControlPannal+1, (celDymSqwd * maxCelsInY)+1);        
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
             TopMost = true;
-            BackColor = Color.Black;
             StartPosition = FormStartPosition.CenterScreen;
-        }
+            BackColor = Color.Linen;
 
-        private void GameOfLife_Initialize()
-        {
-            GameObjects.RenderMode = SmoothingMode.HighSpeed;
-
-            oldCels = new int[maxCelsInX, maxCelsInY];
-            newCels = new int[maxCelsInX, maxCelsInY];
-            quadrants = new int[quadrantsInX, quadrantsInY];
-            subQuadrants = new int[quadrantsInX, quadrantsInY];
-
-
-            if (true) // Random
-            for (int x = 0; x < maxCelsInX; x++)
-                for (int y = 0; y < maxCelsInY; y++)
-                    newCels[x, y] = rand.Next(0, 2);
-
-            if (true) // glidergun
+            Initialize += () =>
             {
+                GameObjects.RenderMode = SmoothingMode.HighSpeed;
+                GameObjects.DrawContainer.Dock = DockStyle.None;
+                GameObjects.DrawContainer.BackColor = Color.Black;
+                GameObjects.DrawContainer.Bounds =
+                    new Rectangle(widthControlPannal, 0, (celDymSqwd * maxCelsInX) + 1, (celDymSqwd * maxCelsInY) + 1);
+
+
+                oldCels = new int[maxCelsInX, maxCelsInY];
+                newCels = new int[maxCelsInX, maxCelsInY];
+                quadrants = new int[quadrantsInX, quadrantsInY];
+                subQuadrants = new int[quadrantsInX, quadrantsInY];
+
+
+                CreateButton(ref btnPlayPauze,"Play",FlatStyle.System,new Rectangle(10,10,50,25), new btnAction(() => {
+                    running = running == true ? false : true;
+                    btnPlayPauze.Text = running == true ? "Pauze" : "Play";
+                }));
+
+                CreateButton(ref btnQuadrantsUse, "Quadrants rendering off", FlatStyle.System, new Rectangle(10, 45, 155, 25), new btnAction(()=> {
+                    quadrantsUse = quadrantsUse == true ? false : true;
+                    btnQuadrantsUse.Text = quadrantsUse == true ? "Quadrants rendering off" : "Quadrants rendering on";
+                }));
+
+
                 for (int x = 0; x < maxCelsInX; x++)
                     for (int y = 0; y < maxCelsInY; y++)
                         newCels[x, y] = 0;
 
                 GlitterGun(0, 0);
-                GlitterGun(Width / 7, Height / 7);
-                GlitterGun(Width / 4, Height / 4);
-            }                           
+                
+            };
         }
-
-        private void GlitterGun(int x, int y)
-        {
-            newCels[2+x, 2 + y] = 1;     newCels[3 + x, 2 + y] = 1;   newCels[2 + x, 3 + y] = 1;   newCels[3 + x, 3 + y] = 1;
-            newCels[9 + x, 2 + y] = 1;   newCels[10 + x, 2 + y] = 1;  newCels[10 + x, 3 + y] = 1;  newCels[9 + x, 3 + y] = 1;
-            newCels[6 + x, 6 + y] = 1;   newCels[6 + x, 5 + y] = 1;   newCels[7 + x, 5 + y] = 1;   newCels[7 + x, 6 + y] = 1;
-            newCels[33 + x, 12 + y] = 1; newCels[33 + x, 13 + y] = 1; newCels[34 + x, 12 + y] = 1; newCels[34 + x, 13 + y] = 1;
-            newCels[22 + x, 19 + y] = 1; newCels[22 + x, 20 + y] = 1; newCels[23 + x, 19 + y] = 1; newCels[23 + x, 21 + y] = 1;
-            newCels[24 + x, 21 + y] = 1; newCels[25 + x, 21 + y] = 1; newCels[25 + x, 22 + y] = 1; newCels[24 + x, 11 + y] = 1;
-            newCels[25 + x, 11 + y] = 1; newCels[27 + x, 11 + y] = 1; newCels[28 + x, 11 + y] = 1; newCels[23 + x, 12 + y] = 1;
-            newCels[29 + x, 12 + y] = 1; newCels[23 + x, 13 + y] = 1; newCels[30 + x, 13 + y] = 1; newCels[23 + x, 14 + y] = 1;
-            newCels[24 + x, 14 + y] = 1; newCels[25 + x, 14 + y] = 1; newCels[29 + x, 14 + y] = 1; newCels[28 + x, 15 + y] = 1; 
-        }
-        
         private void DrawLoop(object sender, PaintEventArgs e)
         {
+
             MakeCels();
-          
-            MakeQuadrants(true,true);
 
-            UpdateCels(true);
-
+            if(quadrantsUse) MakeQuadrants(true,false);
+                    
+            if (running) UpdateCels(quadrantsUse);
+            
             DrawScene(e);
         }
 
@@ -153,12 +153,14 @@ namespace GameEngineForms.Forms
         }
         private void DrawScene(PaintEventArgs e)
         {
-            if (quadDraw.Count != 0)
-            {
-                e.Graphics.DrawRectangles(new Pen(Color.FromArgb(25, 0, 25), 0.2f), supQaudDraw.ToArray());
-                e.Graphics.DrawRectangles(Pens.Magenta, quadDraw.ToArray());
-            }
+            if (quadrantsUse)
+                if (quadDraw.Count != 0)
+                {
+                    e.Graphics.DrawRectangles(new Pen(Color.FromArgb(25, 0, 25), 0.2f), supQaudDraw.ToArray());
+                    e.Graphics.DrawRectangles(Pens.Magenta, quadDraw.ToArray());
+                }
 
+           
             if (celDraw.Count != 0)
             {
                 e.Graphics.FillRectangles(Brushes.Red, celDraw.ToArray());
@@ -263,6 +265,19 @@ namespace GameEngineForms.Forms
             tell += oldCels[((x + 1) + maxCelsInX) % maxCelsInX, ((y - 1) + maxCelsInY) % maxCelsInY] == 1 ? 1 : 0;
             
             return tell;
+        }
+
+        private void GlitterGun(int x, int y)
+        {
+            newCels[2 + x, 2 + y] = 1; newCels[3 + x, 2 + y] = 1; newCels[2 + x, 3 + y] = 1; newCels[3 + x, 3 + y] = 1;
+            newCels[9 + x, 2 + y] = 1; newCels[10 + x, 2 + y] = 1; newCels[10 + x, 3 + y] = 1; newCels[9 + x, 3 + y] = 1;
+            newCels[6 + x, 6 + y] = 1; newCels[6 + x, 5 + y] = 1; newCels[7 + x, 5 + y] = 1; newCels[7 + x, 6 + y] = 1;
+            newCels[33 + x, 12 + y] = 1; newCels[33 + x, 13 + y] = 1; newCels[34 + x, 12 + y] = 1; newCels[34 + x, 13 + y] = 1;
+            newCels[22 + x, 19 + y] = 1; newCels[22 + x, 20 + y] = 1; newCels[23 + x, 19 + y] = 1; newCels[23 + x, 21 + y] = 1;
+            newCels[24 + x, 21 + y] = 1; newCels[25 + x, 21 + y] = 1; newCels[25 + x, 22 + y] = 1; newCels[24 + x, 11 + y] = 1;
+            newCels[25 + x, 11 + y] = 1; newCels[27 + x, 11 + y] = 1; newCels[28 + x, 11 + y] = 1; newCels[23 + x, 12 + y] = 1;
+            newCels[29 + x, 12 + y] = 1; newCels[23 + x, 13 + y] = 1; newCels[30 + x, 13 + y] = 1; newCels[23 + x, 14 + y] = 1;
+            newCels[24 + x, 14 + y] = 1; newCels[25 + x, 14 + y] = 1; newCels[29 + x, 14 + y] = 1; newCels[28 + x, 15 + y] = 1;
         }
 
     }

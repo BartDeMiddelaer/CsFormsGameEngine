@@ -29,8 +29,7 @@ namespace GameEngineForms
         }
 
         public static void FormToRun_HandleCreated(object sender, EventArgs e)
-        {           
-            GameObjects.DrawContainer.Dock = DockStyle.Fill;
+        {                       
             GameObjects.DrawContainer.Paint += new PaintEventHandler((object sender, PaintEventArgs e) => Render(sender, e));
             Application.Idle += (object sender, EventArgs e) => {
                 while (IdelTiming.IsApplicationIdle())

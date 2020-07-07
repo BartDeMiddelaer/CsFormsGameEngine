@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using static GameEngineForms.Resources.DynamicResources;
 
 namespace GameEngineForms.Services
 {
@@ -19,10 +22,16 @@ namespace GameEngineForms.Services
         internal delegate void DestructorDelegate();
         internal static event DestructorDelegate Destructor;
 
-        public static void DoOnIntervalPerSec(DoOnIntervalDelegate del, int perSecond)
+
+        public delegate void btnAction();
+        public static void CreateButton(ref Button btn,string text, FlatStyle style,Rectangle location, btnAction action)
         {
-            del.Invoke();
+            btn = new Button { Bounds = location, Text = text, FlatStyle = style };
+            GameObjects.FormToRun.Controls.Add(btn);
+
+            btn.Click += (object sender, EventArgs e) => {
+               if(action != null) action();              
+            };
         }
-        public delegate void DoOnIntervalDelegate();
     }
 }
