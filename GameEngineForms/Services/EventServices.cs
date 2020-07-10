@@ -29,9 +29,7 @@ namespace GameEngineForms.Services
             btn = new Button { Bounds = location, Text = text, FlatStyle = style };
             GameObjects.FormToRun.Controls.Add(btn);
 
-            btn.Click += (object sender, EventArgs e) => {
-               if(action != null) action();              
-            };
+            btn.Click += (object sender, EventArgs e) => action();
         }
     }
 }

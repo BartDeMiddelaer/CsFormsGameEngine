@@ -18,9 +18,8 @@ namespace GameEngineForms.Forms
 {
     public partial class GameOfLife : Form
     {
-        Button btnPlayPauze, btnQuadrantsUse;
+        Button btnPlayPauze, btnQuadrantsUse, btnDrawQuadrants, btnDrawQuadrantsInfo;
 
-        readonly Random rand = new Random();
         readonly List<Rectangle> celDraw = new List<Rectangle>();
         readonly List<Rectangle> supQaudDraw = new List<Rectangle>();
         readonly List<Rectangle> quadDraw = new List<Rectangle>();
@@ -29,14 +28,16 @@ namespace GameEngineForms.Forms
         readonly static int
             celDymSqwd = 3,
             // moet deelbaar door 10 zijn
-            maxCelsInX = 400,
-            maxCelsInY = 300,
+            maxCelsInX = 500,
+            maxCelsInY = 400,
             quadrantsInX = maxCelsInX / 10,
             quadrantsInY = maxCelsInY / 10,
             widthControlPannal = 200;
 
         bool running = false,
-             quadrantsUse = true;
+             quadrantsUse = true,
+             drawQuadrants = true,
+             drawQuadrantsInfo = true;
 
 
 
@@ -70,9 +71,19 @@ namespace GameEngineForms.Forms
                     btnPlayPauze.Text = running == true ? "Pauze" : "Play";
                 }));
 
-                CreateButton(ref btnQuadrantsUse, "Quadrants rendering off", FlatStyle.System, new Rectangle(10, 45, 155, 25), new btnAction(()=> {
+                CreateButton(ref btnQuadrantsUse, "Quadrant rendering off", FlatStyle.System, new Rectangle(10, 45, 155, 25), new btnAction(() => {
                     quadrantsUse = quadrantsUse == true ? false : true;
-                    btnQuadrantsUse.Text = quadrantsUse == true ? "Quadrants rendering off" : "Quadrants rendering on";
+                    btnQuadrantsUse.Text = quadrantsUse == true ? "Quadrant rendering off" : "Quadrant rendering on";
+                }));
+
+                CreateButton(ref btnDrawQuadrants, "Draw Quadrant on", FlatStyle.System, new Rectangle(10, 70, 155, 25), new btnAction(() => {
+                    drawQuadrants = drawQuadrants == true ? false : true;
+                    btnDrawQuadrants.Text = drawQuadrants == true ? "Draw Quadrant on" : "Draw Quadrant off";
+                }));
+
+                CreateButton(ref btnDrawQuadrantsInfo, "Draw Quadrant info on", FlatStyle.System, new Rectangle(10, 95, 155, 25), new btnAction(() => {
+                    drawQuadrantsInfo = drawQuadrantsInfo == true ? false : true;
+                    btnDrawQuadrantsInfo.Text = drawQuadrantsInfo == true ? "Draw Quadrant info on" : "Draw Quadrant info off";
                 }));
 
 
@@ -80,8 +91,16 @@ namespace GameEngineForms.Forms
                     for (int y = 0; y < maxCelsInY; y++)
                         newCels[x, y] = 0;
 
-                GlitterGun(0, 0);
-                
+                 GlitterGun(0, 0);
+                 GlitterGun(20, 250);
+
+                newCels[maxCelsInX / 2, maxCelsInY / 2] = 1;
+                newCels[maxCelsInX / 2 + 1, maxCelsInY / 2] = 1;
+                newCels[maxCelsInX / 2, maxCelsInY / 2 +1] = 1;
+                newCels[maxCelsInX / 2 + 1, maxCelsInY / 2 +1] = 1;
+
+
+
             };
         }
         private void DrawLoop(object sender, PaintEventArgs e)
@@ -89,7 +108,7 @@ namespace GameEngineForms.Forms
 
             MakeCels();
 
-            if(quadrantsUse) MakeQuadrants(true,false);
+            if(quadrantsUse) MakeQuadrants(drawQuadrants, drawQuadrantsInfo);
                     
             if (running) UpdateCels(quadrantsUse);
             
@@ -129,9 +148,15 @@ namespace GameEngineForms.Forms
                                     int x = (qwadX * 10) + celXindex;
                                     int y = (qwadY * 10) + celYindex;
 
-                                    if (oldCels[x, y] == 1 && (Livingneighbors(x, y) == 2 || Livingneighbors(x, y) == 3)) {  newCels[x, y] = 1; }
-                                    if (oldCels[x, y] == 1 && Livingneighbors(x, y) > 4 || oldCels[x, y] == 1 && Livingneighbors(x, y) < 2) { newCels[x, y] = 0; }
-                                    if (oldCels[x, y] == 0 && Livingneighbors(x, y) == 3) { newCels[x, y] = 1; }
+                                    if (oldCels[x, y] == 1)
+                                    {
+                                        if (Livingneighbors(x, y) == 2 || Livingneighbors(x, y) == 3) { newCels[x, y] = 1; }
+                                        if (Livingneighbors(x, y) > 4 || Livingneighbors(x, y) < 2) { newCels[x, y] = 0; }
+                                    }
+                                    else
+                                    { 
+                                        if (Livingneighbors(x, y) == 3) { newCels[x, y] = 1; }
+                                    }
                                 }
                             }
                     }
@@ -156,14 +181,14 @@ namespace GameEngineForms.Forms
             if (quadrantsUse)
                 if (quadDraw.Count != 0)
                 {
-                    e.Graphics.DrawRectangles(new Pen(Color.FromArgb(25, 0, 25), 0.2f), supQaudDraw.ToArray());
-                    e.Graphics.DrawRectangles(Pens.Magenta, quadDraw.ToArray());
+                    e.Graphics.DrawRectangles(new Pen(Color.FromArgb(50, 0, 50),1), supQaudDraw.ToArray());
+                    e.Graphics.DrawRectangles(new Pen(Color.FromArgb(125, 50, 125),1), quadDraw.ToArray());
                 }
 
            
             if (celDraw.Count != 0)
             {
-                e.Graphics.FillRectangles(Brushes.Red, celDraw.ToArray());
+                e.Graphics.FillRectangles(Brushes.Green, celDraw.ToArray());
                 e.Graphics.DrawRectangles(Pens.DarkRed, celDraw.ToArray());
             }
 
@@ -198,7 +223,7 @@ namespace GameEngineForms.Forms
                         if (subQuadrants[x, y] != 0)
                         {
                             if(info)
-                                DrawText($"{subQuadrants[x, y]}", new Font("", celDymSqwd * 2), Color.White, new Vector2(x * (10 * celDymSqwd), y * (10 * celDymSqwd)), null);
+                                DrawText($"\n{subQuadrants[x, y]}", new Font("", celDymSqwd * 2), Color.White, new Vector2(x * (10 * celDymSqwd), y * (10 * celDymSqwd)), null);
 
                             supQaudDraw.Add(new Rectangle(x * (10 * celDymSqwd), y * (10 * celDymSqwd), (10 * celDymSqwd), (10 * celDymSqwd)));
                         }
@@ -245,8 +270,8 @@ namespace GameEngineForms.Forms
                     : subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] += 1;
 
                 subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] = quadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] != 0
-                        ? subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY]
-                        : subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] += 1;
+                    ? subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY]
+                    : subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] += 1;
                            
         }
 

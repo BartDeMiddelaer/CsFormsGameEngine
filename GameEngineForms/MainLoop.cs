@@ -21,7 +21,7 @@ namespace GameEngineForms
         static readonly Stopwatch fpsDisplyInterval = new Stopwatch();
 
         [STAThread] static void Main()
-        {       
+       {       
             fpsDisplyInterval.Start();
             if(GameObjects.FormToRun != null)
             GameObjects.FormToRun.HandleCreated += FormToRun_HandleCreated;
