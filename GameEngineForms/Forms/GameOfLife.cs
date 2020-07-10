@@ -18,7 +18,7 @@ namespace GameEngineForms.Forms
 {
     public partial class GameOfLife : Form
     {
-        Button btnPlayPauze, btnQuadrantsUse, btnDrawQuadrants, btnDrawQuadrantsInfo;
+        Button btnPlayPauze, btnReset, btnQuadrantsUse, btnDrawQuadrants, btnDrawQuadrantsInfo;
 
         readonly List<Rectangle> celDraw = new List<Rectangle>();
         readonly List<Rectangle> supQaudDraw = new List<Rectangle>();
@@ -66,9 +66,19 @@ namespace GameEngineForms.Forms
                 subQuadrants = new int[quadrantsInX, quadrantsInY];
 
 
-                CreateButton(ref btnPlayPauze,"Play",FlatStyle.System,new Rectangle(10,10,50,25), new btnAction(() => {
+                CreateButton(ref btnPlayPauze, "Play", FlatStyle.System, new Rectangle(10, 10, 50, 25), new btnAction(() => {
                     running = running == true ? false : true;
                     btnPlayPauze.Text = running == true ? "Pauze" : "Play";
+                }));
+
+                CreateButton(ref btnReset, "Reset", FlatStyle.System, new Rectangle(70, 10, 50, 25), new btnAction(() => {
+                    for (int x = 0; x < maxCelsInX; x++)
+                        for (int y = 0; y < maxCelsInY; y++)
+                            newCels[x, y] = 0;
+
+                    GlitterGun(0, 0);
+                    GlitterGun(20, 250);
+
                 }));
 
                 CreateButton(ref btnQuadrantsUse, "Quadrant rendering off", FlatStyle.System, new Rectangle(10, 45, 155, 25), new btnAction(() => {
@@ -94,12 +104,11 @@ namespace GameEngineForms.Forms
                  GlitterGun(0, 0);
                  GlitterGun(20, 250);
 
-                newCels[maxCelsInX / 2, maxCelsInY / 2] = 1;
-                newCels[maxCelsInX / 2 + 1, maxCelsInY / 2] = 1;
-                newCels[maxCelsInX / 2, maxCelsInY / 2 +1] = 1;
-                newCels[maxCelsInX / 2 + 1, maxCelsInY / 2 +1] = 1;
-
-
+                // testing
+                //newCels[maxCelsInX / 2, maxCelsInY / 2] = 1;
+               // newCels[maxCelsInX / 2 + 1, maxCelsInY / 2] = 1;
+               // newCels[maxCelsInX / 2, maxCelsInY / 2 +1] = 1;
+               // newCels[maxCelsInX / 2 + 1, maxCelsInY / 2 +1] = 1;
 
             };
         }
