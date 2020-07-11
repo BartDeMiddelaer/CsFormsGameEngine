@@ -40,9 +40,11 @@ namespace GameEngineForms.Services
 
 
 
-        public delegate void colorPickerAction();
-        public static void CreateColorDialog(ref ColorDialog cdg, string text, FlatStyle style, Rectangle location, colorPickerAction action)
+        public delegate void colorPicker_Ok_Action();
+        public static void CreateColorDialog(ref ColorDialog cdg, string text, FlatStyle style, Rectangle location, colorPicker_Ok_Action action)
         {
+            ColorDialog tempCdg = new ColorDialog();
+
             Button btnColorPicker = new Button { 
                 Text = text,
                 FlatStyle = style,
@@ -50,8 +52,15 @@ namespace GameEngineForms.Services
             };
             GameObjects.FormToRun.Controls.Add(btnColorPicker);
 
-            btnColorPicker.Click += (object sender, EventArgs e) => action();
+            btnColorPicker.Click += (object sender, EventArgs e) =>
+            {
+                if (tempCdg.ShowDialog() == DialogResult.OK)
+                {
+                    action();
+                }
+            };
 
+            cdg = tempCdg;
         }
 
         public delegate void CheckedChangedAction();

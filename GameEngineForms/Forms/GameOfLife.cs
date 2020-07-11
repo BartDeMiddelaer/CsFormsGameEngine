@@ -20,9 +20,10 @@ namespace GameEngineForms.Forms
     {
         Button btnPlayPauze, btnReset;
         CheckBox cbQuadrantsUse, cbDrawQuadrants, cbDrawQuadrantsInfo;
-        ColorDialog cdCelColorPicker;
+        ColorDialog cdgCelColorPicker;
+        Color celColor = new Color().RandomColor();
+        Color celStrokeColor = new Color().RandomColor();
 
-        Color celColor;
 
         readonly List<Rectangle> celDraw = new List<Rectangle>();
         readonly List<Rectangle> supQaudDraw = new List<Rectangle>();
@@ -30,7 +31,7 @@ namespace GameEngineForms.Forms
         int[,] oldCels, newCels, quadrants, subQuadrants;
 
         readonly static int
-            celDymSqwd = 2,
+            celDymSqwd = 3,
             // moet deelbaar door 10 zijn
             maxCelsInX = 500,
             maxCelsInY = 400,
@@ -94,10 +95,8 @@ namespace GameEngineForms.Forms
                     drawQuadrantsInfo = cbDrawQuadrantsInfo.Checked == false ? false : true;
                 }));
 
-                CreateColorDialog(ref cdCelColorPicker, " test", FlatStyle.System, new Rectangle(10, 125, 155, 25), new colorPickerAction(() => { 
-                    
-                
-                
+                CreateColorDialog(ref cdgCelColorPicker, " Cel Inner Color", FlatStyle.System, new Rectangle(10, 125, 155, 25), new colorPicker_Ok_Action(() => {
+                    celColor = cdgCelColorPicker.Color;
                 }));
 
 
@@ -205,7 +204,7 @@ namespace GameEngineForms.Forms
             if (celDraw.Count != 0)
             {
                 e.Graphics.FillRectangles(new SolidBrush(celColor), celDraw.ToArray());
-                e.Graphics.DrawRectangles(Pens.DarkRed, celDraw.ToArray());
+                e.Graphics.DrawRectangles(new Pen(celStrokeColor,1), celDraw.ToArray());
             }
 
             quadrants = new int[quadrantsInX, quadrantsInY];
