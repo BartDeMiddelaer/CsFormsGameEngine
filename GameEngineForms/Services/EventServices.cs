@@ -24,17 +24,35 @@ namespace GameEngineForms.Services
 
 
         public delegate void btnAction();
-        public static void CreateButton(ref Button btn,string text, FlatStyle style,Rectangle location, btnAction action)
+        public static void CreateButton(ref Button btn, string text, FlatStyle style, Rectangle location, btnAction action)
         {
-            btn = new Button { 
-                Bounds = location, 
-                Text = text, FlatStyle = style
+            btn = new Button
+            {
+                Bounds = location,
+                Text = text,
+                FlatStyle = style
             };
 
             GameObjects.FormToRun.Controls.Add(btn);
             btn.Click += (object sender, EventArgs e) => action();
         }
 
+
+
+
+        public delegate void colorPickerAction();
+        public static void CreateColorDialog(ref ColorDialog cdg, string text, FlatStyle style, Rectangle location, colorPickerAction action)
+        {
+            Button btnColorPicker = new Button { 
+                Text = text,
+                FlatStyle = style,
+                Bounds = location
+            };
+            GameObjects.FormToRun.Controls.Add(btnColorPicker);
+
+            btnColorPicker.Click += (object sender, EventArgs e) => action();
+
+        }
 
         public delegate void CheckedChangedAction();
         public static void CreateCheckBox(ref CheckBox cb,bool isChecked, string text, Appearance appearance, Rectangle location, CheckedChangedAction action)

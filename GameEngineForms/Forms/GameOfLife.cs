@@ -20,6 +20,9 @@ namespace GameEngineForms.Forms
     {
         Button btnPlayPauze, btnReset;
         CheckBox cbQuadrantsUse, cbDrawQuadrants, cbDrawQuadrantsInfo;
+        ColorDialog cdCelColorPicker;
+
+        Color celColor;
 
         readonly List<Rectangle> celDraw = new List<Rectangle>();
         readonly List<Rectangle> supQaudDraw = new List<Rectangle>();
@@ -80,6 +83,7 @@ namespace GameEngineForms.Forms
                     GlitterGun(20, 250);
 
                 }));
+
                 CreateCheckBox(ref cbQuadrantsUse, true, "Quadrant rendering", Appearance.Normal, new Rectangle(10, 45, 155, 25), new CheckedChangedAction(() => {
                     quadrantsUse = cbQuadrantsUse.Checked == false ? false : true;
                 }));
@@ -90,7 +94,13 @@ namespace GameEngineForms.Forms
                     drawQuadrantsInfo = cbDrawQuadrantsInfo.Checked == false ? false : true;
                 }));
 
-               
+                CreateColorDialog(ref cdCelColorPicker, " test", FlatStyle.System, new Rectangle(10, 125, 155, 25), new colorPickerAction(() => { 
+                    
+                
+                
+                }));
+
+
                 for (int x = 0; x < maxCelsInX; x++)
                     for (int y = 0; y < maxCelsInY; y++)
                         newCels[x, y] = 0;
@@ -194,7 +204,7 @@ namespace GameEngineForms.Forms
            
             if (celDraw.Count != 0)
             {
-                e.Graphics.FillRectangles(Brushes.Green, celDraw.ToArray());
+                e.Graphics.FillRectangles(new SolidBrush(celColor), celDraw.ToArray());
                 e.Graphics.DrawRectangles(Pens.DarkRed, celDraw.ToArray());
             }
 
