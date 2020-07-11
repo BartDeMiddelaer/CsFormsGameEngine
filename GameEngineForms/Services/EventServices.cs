@@ -26,10 +26,28 @@ namespace GameEngineForms.Services
         public delegate void btnAction();
         public static void CreateButton(ref Button btn,string text, FlatStyle style,Rectangle location, btnAction action)
         {
-            btn = new Button { Bounds = location, Text = text, FlatStyle = style };
-            GameObjects.FormToRun.Controls.Add(btn);
+            btn = new Button { 
+                Bounds = location, 
+                Text = text, FlatStyle = style
+            };
 
+            GameObjects.FormToRun.Controls.Add(btn);
             btn.Click += (object sender, EventArgs e) => action();
         }
+
+
+        public delegate void CheckedChangedAction();
+        public static void CreateCheckBox(ref CheckBox cb,bool isChecked, string text, Appearance appearance, Rectangle location, CheckedChangedAction action)
+        {
+            cb = new CheckBox {
+                Text = text,
+                Appearance = appearance,
+                Bounds = location,
+                Checked = isChecked
+            };
+
+            GameObjects.FormToRun.Controls.Add(cb);
+            cb.CheckedChanged += (object sender, EventArgs e) => action();
+        }     
     }
 }

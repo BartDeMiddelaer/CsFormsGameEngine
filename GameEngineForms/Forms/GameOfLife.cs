@@ -18,7 +18,8 @@ namespace GameEngineForms.Forms
 {
     public partial class GameOfLife : Form
     {
-        Button btnPlayPauze, btnReset, btnQuadrantsUse, btnDrawQuadrants, btnDrawQuadrantsInfo;
+        Button btnPlayPauze, btnReset;
+        CheckBox cbQuadrantsUse, cbDrawQuadrants, cbDrawQuadrantsInfo;
 
         readonly List<Rectangle> celDraw = new List<Rectangle>();
         readonly List<Rectangle> supQaudDraw = new List<Rectangle>();
@@ -26,7 +27,7 @@ namespace GameEngineForms.Forms
         int[,] oldCels, newCels, quadrants, subQuadrants;
 
         readonly static int
-            celDymSqwd = 3,
+            celDymSqwd = 2,
             // moet deelbaar door 10 zijn
             maxCelsInX = 500,
             maxCelsInY = 400,
@@ -70,7 +71,6 @@ namespace GameEngineForms.Forms
                     running = running == true ? false : true;
                     btnPlayPauze.Text = running == true ? "Pauze" : "Play";
                 }));
-
                 CreateButton(ref btnReset, "Reset", FlatStyle.System, new Rectangle(70, 10, 50, 25), new btnAction(() => {
                     for (int x = 0; x < maxCelsInX; x++)
                         for (int y = 0; y < maxCelsInY; y++)
@@ -80,23 +80,17 @@ namespace GameEngineForms.Forms
                     GlitterGun(20, 250);
 
                 }));
-
-                CreateButton(ref btnQuadrantsUse, "Quadrant rendering off", FlatStyle.System, new Rectangle(10, 45, 155, 25), new btnAction(() => {
-                    quadrantsUse = quadrantsUse == true ? false : true;
-                    btnQuadrantsUse.Text = quadrantsUse == true ? "Quadrant rendering off" : "Quadrant rendering on";
+                CreateCheckBox(ref cbQuadrantsUse, true, "Quadrant rendering", Appearance.Normal, new Rectangle(10, 45, 155, 25), new CheckedChangedAction(() => {
+                    quadrantsUse = cbQuadrantsUse.Checked == false ? false : true;
+                }));
+                CreateCheckBox(ref cbDrawQuadrants, true, "Draw Quadrant", Appearance.Normal, new Rectangle(10, 70, 155, 25), new CheckedChangedAction(() => {
+                    drawQuadrants = cbDrawQuadrants.Checked == false ? false : true;
+                }));
+                CreateCheckBox(ref cbDrawQuadrantsInfo, true, "Draw Quadrant", Appearance.Normal, new Rectangle(10, 95, 155, 25), new CheckedChangedAction(() => {
+                    drawQuadrantsInfo = cbDrawQuadrantsInfo.Checked == false ? false : true;
                 }));
 
-                CreateButton(ref btnDrawQuadrants, "Draw Quadrant on", FlatStyle.System, new Rectangle(10, 70, 155, 25), new btnAction(() => {
-                    drawQuadrants = drawQuadrants == true ? false : true;
-                    btnDrawQuadrants.Text = drawQuadrants == true ? "Draw Quadrant on" : "Draw Quadrant off";
-                }));
-
-                CreateButton(ref btnDrawQuadrantsInfo, "Draw Quadrant info on", FlatStyle.System, new Rectangle(10, 95, 155, 25), new btnAction(() => {
-                    drawQuadrantsInfo = drawQuadrantsInfo == true ? false : true;
-                    btnDrawQuadrantsInfo.Text = drawQuadrantsInfo == true ? "Draw Quadrant info on" : "Draw Quadrant info off";
-                }));
-
-
+               
                 for (int x = 0; x < maxCelsInX; x++)
                     for (int y = 0; y < maxCelsInY; y++)
                         newCels[x, y] = 0;
@@ -112,6 +106,9 @@ namespace GameEngineForms.Forms
 
             };
         }
+
+
+
         private void DrawLoop(object sender, PaintEventArgs e)
         {
 
