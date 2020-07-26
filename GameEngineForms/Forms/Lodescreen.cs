@@ -16,7 +16,7 @@ namespace GameEngineForms.Forms
 {
     public partial class Lodescreen : Form
     {
-        readonly PictureBox DrawContainer = new PictureBox();
+        readonly PictureBox LoopContainer = new PictureBox();
         readonly Task gameFormLoading = new Task(InvokeInitialize);
         readonly Task showMinimumTime = new Task(() =>  Thread.Sleep(GameObjects.MinimumLodeScreenTime));
         readonly Task bitmapLoading = new Task(() => BitmapResources = new BitmapRepo().Resources);
@@ -31,11 +31,11 @@ namespace GameEngineForms.Forms
             StartPosition = FormStartPosition.CenterScreen;
             TransparencyKey = Color.Gray;
             BackColor = Color.Gray;
-            DrawContainer.Dock = DockStyle.Fill;
-            DrawContainer.Paint += Render;
-            Controls.Add(DrawContainer);
+            LoopContainer.Dock = DockStyle.Fill;
+            LoopContainer.Paint += Render;
+            Controls.Add(LoopContainer);
 
-            tikker.Tick += (object sender, EventArgs e) => DrawContainer.Refresh(); 
+            tikker.Tick += (object sender, EventArgs e) => LoopContainer.Refresh(); 
             tikker.Start();
             tikker.Interval = 10;
             gameFormLoading.Start();
@@ -85,9 +85,9 @@ namespace GameEngineForms.Forms
             #endregion
 
             // Text ------------------------------------
-            e.Graphics.DrawString("Game", new Font("Arial", 50), Brushes.White, 0, 50);
-            e.Graphics.DrawString("Engine", new Font("Arial", 50), Brushes.Gray, 200, 50);
-            e.Graphics.DrawString("Made in winForms", new Font("Arial", 15), Brushes.Red, 430, 92);
+            e.Graphics.DrawString("Zero -", new Font("Arial", 50), Brushes.White, 0, 50);
+            e.Graphics.DrawString("Point", new Font("Arial", 50), Brushes.Gray, 200, 50);
+            e.Graphics.DrawString("Made in winForms", new Font("Arial", 15), Brushes.Red, 380, 92);
             e.Graphics.DrawString("Bart De Middelaer", new Font("Arial", 7), Brushes.Black, 212, 115);
 
             e.Graphics.DrawString(              

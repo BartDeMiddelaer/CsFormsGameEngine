@@ -24,6 +24,9 @@ namespace GameEngineForms.Services
 
 
         public delegate void btnAction();
+        public delegate void colorPicker_Ok_Action();
+        public delegate void CheckedChangedAction();
+
         public static void CreateButton(ref Button btn, string text, FlatStyle style, Rectangle location, btnAction action)
         {
             btn = new Button
@@ -36,14 +39,9 @@ namespace GameEngineForms.Services
             GameObjects.FormToRun.Controls.Add(btn);
             btn.Click += (object sender, EventArgs e) => action();
         }
-
-
-
-
-        public delegate void colorPicker_Ok_Action();
         public static void CreateColorDialog(ref ColorDialog cdg, string text, FlatStyle style, Rectangle location, colorPicker_Ok_Action action)
         {
-            ColorDialog tempCdg = new ColorDialog();
+            ColorDialog tempCdg = cdg ?? new ColorDialog();
 
             Button btnColorPicker = new Button { 
                 Text = text,
@@ -62,8 +60,6 @@ namespace GameEngineForms.Services
 
             cdg = tempCdg;
         }
-
-        public delegate void CheckedChangedAction();
         public static void CreateCheckBox(ref CheckBox cb,bool isChecked, string text, Appearance appearance, Rectangle location, CheckedChangedAction action)
         {
             cb = new CheckBox {

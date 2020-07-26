@@ -17,7 +17,7 @@ namespace GameEngineForms.Resources
 
     // to fill in 
     public class BitmapRepo
-    {
+    {     
         public List<BitmapInfo> Resources { get; set; } = new List<BitmapInfo>();
     }
     public class SoundRepo

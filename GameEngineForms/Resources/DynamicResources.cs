@@ -35,15 +35,16 @@ namespace GameEngineForms.Resources
 
         // Life Time Porpertys -----------------------------------------------------
         public Form FormToRun { get; set; } = new GameOfLife(); // <------------ Set game here
-        public PictureBox DrawContainer { get; set; } = new PictureBox();
+        public PictureBox LoopContainer { get; set; } = new PictureBox();
         public SmoothingMode RenderMode { get; set; } = SmoothingMode.HighSpeed;
-        public int MinimumLodeScreenTime { get; set; } = 1000;
+        public int MinimumLodeScreenTime { get; set; } = 2000;
 
 
         // -------------------------------------------------------------------------
 
 
         // GameCycle Porpertys -----------------------------------------------------
+        public bool UseDrawFunctions { get; set; } = false;
         public List<Line> LineGeometry { get; set; } = new List<Line>();
         public List<Rect> RectGeometry { get; set; } = new List<Rect>();
         public List<Circle> CircleGeometry { get; set; } = new List<Circle>();

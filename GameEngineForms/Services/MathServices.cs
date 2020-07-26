@@ -102,8 +102,8 @@ namespace GameEngineForms.Services
     
         public static Vector2 RandomVector2(this Vector2 vector)
         {
-            vector.X = new Random().Next(0, GameObjects.DrawContainer.Width);
-            vector.Y = new Random().Next(0, GameObjects.DrawContainer.Height);
+            vector.X = new Random().Next(0, GameObjects.LoopContainer.Width);
+            vector.Y = new Random().Next(0, GameObjects.LoopContainer.Height);
             return vector;
         }
 
