@@ -67,8 +67,8 @@ namespace GameEngineForms.Forms
             quadrantsInX = maxCelsInX / 10;
             quadrantsInY = maxCelsInY / 10;
             widthControlPannal = 210;
-            celSize = 3;
-            maxBrushSize = 60;
+            celSize = 2;
+            maxBrushSize = 40;
             StartBrushSize = 10;
             lastBrushSize = StartBrushSize;
             brushAcc = 1;
@@ -100,11 +100,24 @@ namespace GameEngineForms.Forms
             Paint += (object sender, PaintEventArgs e) => ControleDraw?.Invoke(sender, e);
             GameCycle += DrawLoop;
             MouseWheel += BrushResizer;
+            GameObjects.LoopContainer.MouseClick += MouseDrawClick;
         };
 
+        private void MouseDrawClick(object sender, MouseEventArgs e)
+        {
+            for (int x = 0; x < quadrantsInX; x++)
+                for (int y = 0; y < quadrantsInY; y++)
+                {
+                    if (mousQuadrants[x, y] != 0)
+                    { 
+
+                    
+                    
+                    }                                        
+                }
 
 
-     
+        }
 
         private void CelControles(int x, int y)
         {
