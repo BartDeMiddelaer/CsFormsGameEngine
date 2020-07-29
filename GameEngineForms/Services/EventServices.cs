@@ -26,6 +26,9 @@ namespace GameEngineForms.Services
         public delegate void btnAction();
         public delegate void colorPicker_Ok_Action();
         public delegate void CheckedChangedAction();
+        public delegate void TextChangedAction();
+        public delegate void SelectionChangedAction();
+
 
         public static void CreateButton(ref Button btn, string text, FlatStyle style, Rectangle location, btnAction action)
         {
@@ -48,16 +51,9 @@ namespace GameEngineForms.Services
                 FlatStyle = style,
                 Bounds = location
             };
+
+            btnColorPicker.Click += (object sender, EventArgs e) => { if (tempCdg.ShowDialog() == DialogResult.OK) action(); };
             GameObjects.FormToRun.Controls.Add(btnColorPicker);
-
-            btnColorPicker.Click += (object sender, EventArgs e) =>
-            {
-                if (tempCdg.ShowDialog() == DialogResult.OK)
-                {
-                    action();
-                }
-            };
-
             cdg = tempCdg;
         }
         public static void CreateCheckBox(ref CheckBox cb,bool isChecked, string text, Appearance appearance, Rectangle location, CheckedChangedAction action)
@@ -69,8 +65,35 @@ namespace GameEngineForms.Services
                 Checked = isChecked
             };
 
+            if (appearance == Appearance.Button) cb.BackColor = Color.FromArgb(240,240,240);
+
+            if (action != null)
+                cb.CheckedChanged += (object sender, EventArgs e) => action();
+
             GameObjects.FormToRun.Controls.Add(cb);
-            cb.CheckedChanged += (object sender, EventArgs e) => action();
-        }     
+        }
+        public static void CreateTextBox(ref TextBox txt, Rectangle location, BorderStyle style, TextChangedAction action)
+        {
+            txt = new TextBox {
+                Text = "2",
+                Bounds = location,
+                BorderStyle = style
+            };
+            if (action != null)
+                txt.TextChanged += (object sender, EventArgs e) => action();  
+            
+            GameObjects.FormToRun.Controls.Add(txt);
+        }
+
+        public static void CreateComboBox(ref ComboBox cmb, Rectangle location, Array items, SelectionChangedAction action)
+        {
+            cmb = new ComboBox { 
+                Bounds = location
+            };
+
+            cmb.DataSource = items;
+
+            GameObjects.FormToRun.Controls.Add(cmb);
+        }
     }
 }

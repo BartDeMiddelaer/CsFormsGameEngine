@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Diagnostics;
 using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 using static GameEngineForms.Services.DrawServices;
 using static GameEngineForms.Services.EventServices;
@@ -12,20 +8,35 @@ using static GameEngineForms.Services.MathServices;
 using static GameEngineForms.Resources.DynamicResources;
 using System.Numerics;
 using System.Drawing.Drawing2D;
-using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations;
 
 namespace GameEngineForms.Forms
 {
     public partial class GameOfLife : Form
     {
+        /// <summary>
+        /// https://www.youtube.com/watch?v=6avJHaC3C2U
+        /// </summary>
 
         #region Vars decleration
 
-        Button btnPlayPauze, btnReset, btnSpawnGlitterGunPatren;
+        internal delegate void ControleDrawDelegate(object sender, PaintEventArgs e);
+        internal static event ControleDrawDelegate ControleDraw;
+
+        public enum Paterens {
+            GosperGliderGun,
+            SimkinGliderGun,
+            PentaDecathlon,
+            HWSS
+        };
+
+        Button btnPlayPauze, btnReset, btnSpawn;
         CheckBox cbQuadrantsUse, cbDrawQuadrants, cbDrawQuadrantsInfo;
+        ComboBox cmbPaterens;
+
         ColorDialog 
-            cdgCelColor = new ColorDialog {Color = Color.Red }, 
-            cdgCelStrokeColor = new ColorDialog { Color = Color.Black }, 
+            cdgCelColor = new ColorDialog { Color = Color.Red }, 
+            cdgCelStrokeColor = new ColorDialog { Color = Color.DarkRed }, 
             cdgColorQuadrantBorder = new ColorDialog { Color = Color.FromArgb(125, 50, 125) }, 
             cdgColorSubQuadrantBorder = new ColorDialog { Color = Color.FromArgb(50, 0, 50) };
 
@@ -34,114 +45,115 @@ namespace GameEngineForms.Forms
         readonly List<Rectangle> supQaudDraw = new List<Rectangle>();
         readonly List<Rectangle> quadDraw = new List<Rectangle>();
         int[,] oldCels, newCels, quadrants, subQuadrants;
+        int celSize, maxCelsInX, maxCelsInY, quadrantsInX, quadrantsInY,
+            widthControlPannal;
 
-        readonly static int
-            celDymSqwd = 2,
-            // moet deelbaar door 10 zijn
-            maxCelsInX = 400,
-            maxCelsInY = 350,
-            quadrantsInX = maxCelsInX / 10,
-            quadrantsInY = maxCelsInY / 10,
-            widthControlPannal = 200;
+        bool running = false;
 
-        bool running = false,
-             quadrantsUse = true,
-             drawQuadrants = false,
-             drawQuadrantsInfo = false;
         #endregion
-
         public GameOfLife() => Initialize += () =>
         {
-            GameCycle += DrawLoop;
-            Paint += ControlPannalPainting;
+            maxCelsInX = 620; // moet deelbaar door 10 zijn
+            maxCelsInY = 400; // moet deelbaar door 10 zijn
+            quadrantsInX = maxCelsInX / 10;
+            quadrantsInY = maxCelsInY / 10;
+            widthControlPannal = 210;
+            celSize = 2;
 
-            ClientSize = new Size((celDymSqwd * maxCelsInX) + widthControlPannal + 1, (celDymSqwd * maxCelsInY) + 1);
+            ClientSize = new Size((celSize * maxCelsInX) + widthControlPannal + 1, (celSize * maxCelsInY) + 1);
             FormBorderStyle = FormBorderStyle.FixedSingle;
-            MaximizeBox = false;
-            TopMost = true;
             StartPosition = FormStartPosition.CenterScreen;
             BackColor = Color.Linen;
-
-            GameObjects.RenderMode = SmoothingMode.HighSpeed;
+            MaximizeBox = false;
+            //TopMost = true;
+            
             GameObjects.UseDrawFunctions = true;
-            GameObjects.LoopContainer.BackColor = Color.Black;
+            GameObjects.RenderMode = SmoothingMode.HighSpeed;
+            GameObjects.LoopContainer.BackColor = Color.FromArgb(10,10,10);
             GameObjects.LoopContainer.Bounds =
-                new Rectangle(widthControlPannal, 0, (celDymSqwd * maxCelsInX) + 1, (celDymSqwd * maxCelsInY) + 1);
+                new Rectangle(widthControlPannal, 0, (celSize * maxCelsInX) + 1, (celSize * maxCelsInY) + 1);
 
             oldCels = new int[maxCelsInX, maxCelsInY];
             newCels = new int[maxCelsInX, maxCelsInY];
             quadrants = new int[quadrantsInX, quadrantsInY];
             subQuadrants = new int[quadrantsInX, quadrantsInY];
 
-            CreateButton(ref btnPlayPauze, "Play", FlatStyle.System, new Rectangle(20, 35, 50, 25), new btnAction(() => {
+            DrawCelControles(5, 5);
+            CelControles(5, 250);
+            QuadrantsControles(5, 385);
+
+            Paint += (object sender, PaintEventArgs e) => ControleDraw?.Invoke(sender, e);
+            GameCycle += DrawLoop;
+        };
+
+        private void CelControles(int x, int y)
+        {
+            CreateButton(ref btnPlayPauze, "Play", FlatStyle.System, new Rectangle(x + 20, y + 25, 78, 25), new btnAction(() => {
                 running = running == true ? false : true;
                 btnPlayPauze.Text = running == true ? "Pauze" : "Play";
             }));
-            CreateButton(ref btnReset, "Clear", FlatStyle.System, new Rectangle(80, 35, 50, 25), new btnAction(() => {
-                for (int x = 0; x < maxCelsInX; x++)
-                    for (int y = 0; y < maxCelsInY; y++)
-                        newCels[x, y] = 0;
-            }));
-            
-            CreateCheckBox(ref cbQuadrantsUse,true, "Quadrant rendering", Appearance.Normal, new Rectangle(20, 70, 155, 25), new CheckedChangedAction(() => {                
-                quadrantsUse = cbQuadrantsUse.Checked == false ? false : true;
-            }));
-            CreateCheckBox(ref cbDrawQuadrants, false, "Draw Quadrant", Appearance.Normal, new Rectangle(20, 95, 155, 25), new CheckedChangedAction(() => {
-                drawQuadrants = cbDrawQuadrants.Checked == false ? false : true;
-            }));
-            CreateCheckBox(ref cbDrawQuadrantsInfo, false, "Draw Quadrant info", Appearance.Normal, new Rectangle(20, 120, 155, 25),new CheckedChangedAction(() => { 
-                drawQuadrantsInfo = cbDrawQuadrantsInfo.Checked == false ? false : true; 
+            CreateButton(ref btnReset, "Clear", FlatStyle.System, new Rectangle(x + 104, y + 25, 76, 25), new btnAction(() => {
+                newCels = new int[maxCelsInX, maxCelsInY];
             }));
 
-            CreateColorDialog(ref cdgCelColor, "Cel inner", FlatStyle.System, new Rectangle(20, 150, 130, 25), new colorPicker_Ok_Action(() => {
-                Refresh();
-            }));
-            CreateColorDialog(ref cdgCelStrokeColor, "Cel stroke", FlatStyle.System, new Rectangle(20, 180, 130, 25),new colorPicker_Ok_Action(() => {
-                Refresh();
-            }));
-            CreateColorDialog(ref cdgColorQuadrantBorder, "QuadrantBorder", FlatStyle.System, new Rectangle(20, 210, 130, 25),new colorPicker_Ok_Action(() => {
-                Refresh();
-            }));
-            CreateColorDialog(ref cdgColorSubQuadrantBorder, "Sub quadrantBorder", FlatStyle.System, new Rectangle(20, 240, 130, 25),new colorPicker_Ok_Action(() => {
-                Refresh();
-            }));
+            CreateColorDialog(ref cdgCelColor, "Cel inner", FlatStyle.System, new Rectangle(x + 20, y + 55, 130, 25), new colorPicker_Ok_Action(() => Refresh()));         
+            CreateColorDialog(ref cdgCelStrokeColor, "Cel stroke", FlatStyle.System, new Rectangle(x + 20, y + 85, 130, 25), new colorPicker_Ok_Action(() => Refresh()));
+         
+          
+            ControleDraw += (object sender, PaintEventArgs e) => {
+                e.Graphics.DrawString("Cel Properties", new Font("", 10), Brushes.Red, x, y);
 
-            CreateButton(ref btnSpawnGlitterGunPatren, "Simkin glider gun", FlatStyle.System, new Rectangle(20, 300, 50, 50), new btnAction(() => {
-                GlitterGun(rand.Next(0, maxCelsInX - 35), rand.Next(0, maxCelsInY - 23));
-            }));
-            CreateButton(ref btnSpawnGlitterGunPatren, "Gosper glider gun", FlatStyle.System, new Rectangle(75, 300, 50, 50), new btnAction(() => {
-                GlitterGun(rand.Next(0, maxCelsInX - 35), rand.Next(0, maxCelsInY - 23));
-            }));
-            CreateButton(ref btnSpawnGlitterGunPatren, "HWSS", FlatStyle.System, new Rectangle(130, 300, 50, 50), new btnAction(() => {
-                GlitterGun(rand.Next(0, maxCelsInX - 35), rand.Next(0, maxCelsInY - 23));
-            }));
-        };
+                e.Graphics.FillRectangle(new SolidBrush(cdgCelColor.Color), new Rectangle(x + 155, y + 55, 23, 24));
+                e.Graphics.DrawRectangle(Pens.Black, new Rectangle(x + 155, y + 55, 23, 24));
 
-        private void ControlPannalPainting(object sender, PaintEventArgs e)
-        {
-            e.Graphics.DrawString("Quadrant / Cel controles", new Font("",10), Brushes.Red, 10, 10);
-            e.Graphics.DrawString("Spawn patterens", new Font("",10), Brushes.Red, 10, 275);
-
-            e.Graphics.FillRectangle(new SolidBrush(cdgCelColor.Color), new Rectangle(155, 150, 23, 23));
-            e.Graphics.DrawRectangle(Pens.Black, new Rectangle(155, 150, 23, 23));
-
-            e.Graphics.FillRectangle(new SolidBrush(cdgCelStrokeColor.Color), new Rectangle(155, 180, 23, 23));
-            e.Graphics.DrawRectangle(Pens.Black, new Rectangle(155, 180, 23, 23));
-
-            e.Graphics.FillRectangle(new SolidBrush(cdgColorQuadrantBorder.Color), new Rectangle(155, 210, 23, 23));
-            e.Graphics.DrawRectangle(Pens.Black, new Rectangle(155, 210, 23, 23));
-
-            e.Graphics.FillRectangle(new SolidBrush(cdgColorSubQuadrantBorder.Color), new Rectangle(155, 240, 23, 23));
-            e.Graphics.DrawRectangle(Pens.Black, new Rectangle(155, 240, 23, 23));
+                e.Graphics.FillRectangle(new SolidBrush(cdgCelStrokeColor.Color), new Rectangle(x + 155, y + 85, 23, 24));
+                e.Graphics.DrawRectangle(Pens.Black, new Rectangle(x + 155, y + 85, 23, 24));
+            };
         }
+        private void QuadrantsControles(int x, int y)
+        {
+            CreateCheckBox(ref cbQuadrantsUse, true, "Quadrant rendering", Appearance.Normal, new Rectangle(x +20, y + 25, 155, 25), null);           
+            CreateCheckBox(ref cbDrawQuadrants, true, "Draw Quadrant", Appearance.Normal, new Rectangle(x + 20, y + 50, 155, 25), null);
+            CreateCheckBox(ref cbDrawQuadrantsInfo, false, "Draw Quadrant info", Appearance.Normal, new Rectangle(x + 20, y + 75, 155, 25), null);
+
+            CreateColorDialog(ref cdgColorQuadrantBorder, "QuadrantBorder", FlatStyle.System, new Rectangle(x + 20, y + 105, 130, 25), new colorPicker_Ok_Action(() => Refresh()));
+            CreateColorDialog(ref cdgColorSubQuadrantBorder, "Sub quadrantBorder", FlatStyle.System, new Rectangle(x + 20, y + 135, 130, 25), new colorPicker_Ok_Action(() => Refresh()));
+
+            ControleDraw += (object sender, PaintEventArgs e) => {
+
+                e.Graphics.DrawString("Quadrant Properties", new Font("", 10), Brushes.Red, x, y);
+           
+                e.Graphics.FillRectangle(new SolidBrush(cdgColorQuadrantBorder.Color), new Rectangle(x + 155, y + 105, 23, 24));
+                e.Graphics.DrawRectangle(Pens.Black, new Rectangle(x + 155, y + 105, 23, 24));
+
+                e.Graphics.FillRectangle(new SolidBrush(cdgColorSubQuadrantBorder.Color), new Rectangle(x + 155, y + 135, 23, 24));
+                e.Graphics.DrawRectangle(Pens.Black, new Rectangle(x + 155, y + 135, 23, 24));
+            };
+        }
+        private void DrawCelControles(int x, int y)
+        {
+
+            CreateButton(ref btnSpawn, "Spawn", FlatStyle.System, new Rectangle(x + 20, y + 25, 50, 22), new btnAction(() => {
+                GlitterGun(rand.Next(0, maxCelsInX - 35), rand.Next(0, maxCelsInY - 23));
+            }));
+            CreateComboBox(ref cmbPaterens, new Rectangle(x + 20, y + 55, 160, 25), Enum.GetValues(typeof(Paterens)), new SelectionChangedAction(()=> Refresh())); 
+
+            ControleDraw += (object sender, PaintEventArgs e) => {
+                e.Graphics.DrawString("Draw / Spawn Options ", new Font("", 10), Brushes.Red, x, y);
+            };
+        }
+     
+
+
         private void DrawLoop(object sender, PaintEventArgs e)
         {
             MakeCels();
-            if(quadrantsUse) MakeQuadrants(drawQuadrants, drawQuadrantsInfo);                  
-            if(running) UpdateCels(quadrantsUse);          
+            if(cbQuadrantsUse.Checked) MakeQuadrants(cbDrawQuadrants.Checked, cbDrawQuadrantsInfo.Checked);                  
+            if(running) UpdateCels(cbQuadrantsUse.Checked);          
             DrawScene(e);
 
         }
+
 
         private void MakeCels()
         {
@@ -151,10 +163,10 @@ namespace GameEngineForms.Forms
                 for (int y = 0; y < maxCelsInY; y++)
                     if (newCels[x, y] == 1)
                     {
-                        celDraw.Add(new Rectangle(x * celDymSqwd, y * celDymSqwd, celDymSqwd, celDymSqwd));
-                        quadrants[x / 10, y / 10]++;
+                        celDraw.Add(new Rectangle(x * celSize, y * celSize, celSize, celSize));
+                        quadrants[x / 10, y / 10]++;                  
                     }
-                                             
+
             GameObjects.ObjectCount = celDraw.Count;
         }
         private void UpdateCels(bool Quadrants)
@@ -165,9 +177,11 @@ namespace GameEngineForms.Forms
             if (Quadrants)
             {
                 for (int qwadX = 0; qwadX < quadrantsInX; qwadX++)
+                { 
                     for (int qwadY = 0; qwadY < quadrantsInY; qwadY++)
                     {
                         if (quadrants[qwadX, qwadY] != 0 || subQuadrants[qwadX, qwadY] != 0)
+                        { 
                             for (int celXindex = 0; celXindex < 10; celXindex++)
                             {
                                 for (int celYindex = 0; celYindex < 10; celYindex++)
@@ -181,12 +195,14 @@ namespace GameEngineForms.Forms
                                         if (Livingneighbors(x, y) > 4 || Livingneighbors(x, y) < 2) { newCels[x, y] = 0; }
                                     }
                                     else
-                                    { 
+                                    {
                                         if (Livingneighbors(x, y) == 3) { newCels[x, y] = 1; }
                                     }
                                 }
                             }
+                        }
                     }
+                }               
             }
             else { UpdateCels_NOQuadrants(); }
                       
@@ -205,14 +221,13 @@ namespace GameEngineForms.Forms
         }
         private void DrawScene(PaintEventArgs e)
         {
-            if (quadrantsUse)
+            if (cbQuadrantsUse.Checked)
                 if (quadDraw.Count != 0)
                 {
                     e.Graphics.DrawRectangles(new Pen(cdgColorSubQuadrantBorder.Color, 1), supQaudDraw.ToArray());
                     e.Graphics.DrawRectangles(new Pen(cdgColorQuadrantBorder.Color, 1), quadDraw.ToArray());
                 }
 
-           
             if (celDraw.Count != 0)
             {
                 e.Graphics.FillRectangles(new SolidBrush(cdgCelColor.Color), celDraw.ToArray());
@@ -230,16 +245,16 @@ namespace GameEngineForms.Forms
             supQaudDraw.Clear();
 
             if (draw)
-            {
+            {              
                 for (int x = 0; x < quadrantsInX; x++)
                     for (int y = 0; y < quadrantsInY; y++)
                     {
                         if (quadrants[x, y] != 0)
                         {
                             if(info)
-                                DrawText($"{quadrants[x, y]}", new Font("", celDymSqwd * 3), Color.White, new Vector2(x * (10 * celDymSqwd)+2, y * (10 * celDymSqwd)+2), null);
+                                DrawText($"{quadrants[x, y]}", new Font("", celSize * 3), Color.White, new Vector2(x * (10 * celSize)+2, y * (10 * celSize)+2), null);
 
-                            quadDraw.Add(new Rectangle(x * (10 * celDymSqwd), y * (10 * celDymSqwd), (10 * celDymSqwd), (10 * celDymSqwd)));
+                            quadDraw.Add(new Rectangle(x * (10 * celSize), y * (10 * celSize), (10 * celSize), (10 * celSize)));
                             MarkSubQuadrants(x, y);
                         }
                     }
@@ -250,9 +265,9 @@ namespace GameEngineForms.Forms
                         if (subQuadrants[x, y] != 0)
                         {
                             if(info)
-                                DrawText($"\n{subQuadrants[x, y]}", new Font("", celDymSqwd * 3), Color.White, new Vector2(x * (10 * celDymSqwd) + 2, y * (10 * celDymSqwd)+2), null);
+                                DrawText($"\n{subQuadrants[x, y]}", new Font("", celSize * 3), Color.White, new Vector2(x * (10 * celSize) + 2, y * (10 * celSize)+2), null);
 
-                            supQaudDraw.Add(new Rectangle(x * (10 * celDymSqwd), y * (10 * celDymSqwd), (10 * celDymSqwd), (10 * celDymSqwd)));
+                            supQaudDraw.Add(new Rectangle(x * (10 * celSize), y * (10 * celSize), (10 * celSize), (10 * celSize)));
                         }
                     }
             }
