@@ -9,6 +9,7 @@ using static GameEngineForms.Resources.DynamicResources;
 using System.Numerics;
 using System.Drawing.Drawing2D;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 
 namespace GameEngineForms.Forms
 {
@@ -33,32 +34,44 @@ namespace GameEngineForms.Forms
         Button btnPlayPauze, btnReset, btnSpawn;
         CheckBox cbQuadrantsUse, cbDrawQuadrants, cbDrawQuadrantsInfo;
         ComboBox cmbPaterens;
+        TextBox txtbrushSize;
 
         ColorDialog 
             cdgCelColor = new ColorDialog { Color = Color.Red }, 
             cdgCelStrokeColor = new ColorDialog { Color = Color.DarkRed }, 
-            cdgColorQuadrantBorder = new ColorDialog { Color = Color.FromArgb(125, 50, 125) }, 
-            cdgColorSubQuadrantBorder = new ColorDialog { Color = Color.FromArgb(50, 0, 50) };
+            cdgColorQuadrantBorder = new ColorDialog { Color = Color.FromArgb(125, 50, 125) },
+            cdgColorSubQuadrantBorder = new ColorDialog { Color = Color.FromArgb(50, 0, 50) },
+            cdgColorMousQuadrantBorder = new ColorDialog { Color = Color.FromArgb(100,255,255,0) };
 
         readonly Random rand = new Random();
         readonly List<Rectangle> celDraw = new List<Rectangle>();
         readonly List<Rectangle> supQaudDraw = new List<Rectangle>();
         readonly List<Rectangle> quadDraw = new List<Rectangle>();
-        int[,] oldCels, newCels, quadrants, subQuadrants;
+        readonly List<Rectangle> mousQuadDraw = new List<Rectangle>();
+
+        int[,] oldCels, newCels, mousQuadrants, quadrants, subQuadrants;
         int celSize, maxCelsInX, maxCelsInY, quadrantsInX, quadrantsInY,
-            widthControlPannal;
+            widthControlPannal, maxBrushSize, lastBrushSize, StartBrushSize,
+            brushAcc;
 
         bool running = false;
+
+        string drawMesage = "Nothing spawnd",
+               modeMesage = "Draw";
 
         #endregion
         public GameOfLife() => Initialize += () =>
         {
-            maxCelsInX = 620; // moet deelbaar door 10 zijn
+            maxCelsInX = 600; // moet deelbaar door 10 zijn
             maxCelsInY = 400; // moet deelbaar door 10 zijn
             quadrantsInX = maxCelsInX / 10;
             quadrantsInY = maxCelsInY / 10;
             widthControlPannal = 210;
-            celSize = 2;
+            celSize = 3;
+            maxBrushSize = 60;
+            StartBrushSize = 10;
+            lastBrushSize = StartBrushSize;
+            brushAcc = 1;
 
             ClientSize = new Size((celSize * maxCelsInX) + widthControlPannal + 1, (celSize * maxCelsInY) + 1);
             FormBorderStyle = FormBorderStyle.FixedSingle;
@@ -77,14 +90,21 @@ namespace GameEngineForms.Forms
             newCels = new int[maxCelsInX, maxCelsInY];
             quadrants = new int[quadrantsInX, quadrantsInY];
             subQuadrants = new int[quadrantsInX, quadrantsInY];
+            mousQuadrants = new int[quadrantsInX, quadrantsInY];
+
 
             DrawCelControles(5, 5);
-            CelControles(5, 250);
-            QuadrantsControles(5, 385);
+            CelControles(5, 265);
+            QuadrantsControles(5, 390);
 
             Paint += (object sender, PaintEventArgs e) => ControleDraw?.Invoke(sender, e);
             GameCycle += DrawLoop;
+            MouseWheel += BrushResizer;
         };
+
+
+
+     
 
         private void CelControles(int x, int y)
         {
@@ -95,7 +115,6 @@ namespace GameEngineForms.Forms
             CreateButton(ref btnReset, "Clear", FlatStyle.System, new Rectangle(x + 104, y + 25, 76, 25), new btnAction(() => {
                 newCels = new int[maxCelsInX, maxCelsInY];
             }));
-
             CreateColorDialog(ref cdgCelColor, "Cel inner", FlatStyle.System, new Rectangle(x + 20, y + 55, 130, 25), new colorPicker_Ok_Action(() => Refresh()));         
             CreateColorDialog(ref cdgCelStrokeColor, "Cel stroke", FlatStyle.System, new Rectangle(x + 20, y + 85, 130, 25), new colorPicker_Ok_Action(() => Refresh()));
          
@@ -133,48 +152,109 @@ namespace GameEngineForms.Forms
         private void DrawCelControles(int x, int y)
         {
 
-            CreateButton(ref btnSpawn, "Spawn", FlatStyle.System, new Rectangle(x + 20, y + 25, 50, 22), new btnAction(() => {
+            CreateComboBox(ref cmbPaterens, new Rectangle(x + 20, y + 25, 160, 25), Enum.GetValues(typeof(Paterens)), null);
+            CreateButton(ref btnSpawn, "Spawn", FlatStyle.System, new Rectangle(x + 20, y + 55, 50, 25), new btnAction(() => {
+
                 GlitterGun(rand.Next(0, maxCelsInX - 35), rand.Next(0, maxCelsInY - 23));
+                drawMesage = cmbPaterens.SelectedItem.ToString();
+                Refresh();
             }));
-            CreateComboBox(ref cmbPaterens, new Rectangle(x + 20, y + 55, 160, 25), Enum.GetValues(typeof(Paterens)), new SelectionChangedAction(()=> Refresh())); 
+
+            CreateTextBox(ref txtbrushSize, new Point(25, 125), 40, "" + StartBrushSize, 2, BorderStyle.Fixed3D, new TextChangedAction(() => Refresh()));
+
+            CreateButton(ref btnSpawn, "Draw", FlatStyle.System, new Rectangle(x + 70, y + 120, 50, 23), new btnAction(() => {
+                modeMesage = "Draw";
+                Refresh();
+            }));
+            CreateButton(ref btnSpawn, "Erase", FlatStyle.System, new Rectangle(x + 130, y + 120, 50, 23), new btnAction(() => {
+                modeMesage = "Erase";
+                Refresh();
+            }));
 
             ControleDraw += (object sender, PaintEventArgs e) => {
                 e.Graphics.DrawString("Draw / Spawn Options ", new Font("", 10), Brushes.Red, x, y);
+                e.Graphics.DrawString($"{drawMesage}", new Font("", 10), Brushes.Black, x + 80, y + 60);
+                e.Graphics.DrawString($"Mode: {modeMesage} / BrushSize: {txtbrushSize.Text}", new Font("", 10), Brushes.Black, x + 20, y + 95);
+
+
+
+                e.Graphics.FillRectangle(Brushes.White, new Rectangle(x + 20, y + 150, 99, 99));
+                e.Graphics.DrawRectangle(Pens.Black, new Rectangle(x + 20, y + 150, 99, 99));
+
+
+                
+
+                e.Graphics.DrawLine(Pens.Black,new Point(x + 70, y + 150), new Point(x + 70, y + 249));
+                e.Graphics.DrawLine(Pens.Black,new Point(x + 20, y + 200), new Point(x + 119, y + 200));
             };
         }
-     
 
 
         private void DrawLoop(object sender, PaintEventArgs e)
         {
-            MakeCels();
-            if(cbQuadrantsUse.Checked) MakeQuadrants(cbDrawQuadrants.Checked, cbDrawQuadrantsInfo.Checked);                  
-            if(running) UpdateCels(cbQuadrantsUse.Checked);          
+            MakeCelsAndQuadrants();                          
+            if(running) UpdateCels();          
             DrawScene(e);
-
+            Clear();
+            
+            e.Graphics.DrawEllipse(new Pen(Color.FromArgb(50,50,50),2),
+                new Rectangle(
+                    new Point(
+                        (int)GetMousePosition().X - (widthControlPannal + lastBrushSize),
+                        (int)GetMousePosition().Y - lastBrushSize),
+                    new Size(lastBrushSize * 2, lastBrushSize * 2)));   
         }
-
-
-        private void MakeCels()
-        {
-            celDraw.Clear();
-
+        private void MakeCelsAndQuadrants()
+        {          
             for (int x = 0; x < maxCelsInX; x++)
                 for (int y = 0; y < maxCelsInY; y++)
                     if (newCels[x, y] == 1)
                     {
                         celDraw.Add(new Rectangle(x * celSize, y * celSize, celSize, celSize));
-                        quadrants[x / 10, y / 10]++;                  
+                        quadrants[x / 10, y / 10]++;
                     }
 
+            for (int x = 0; x < quadrantsInX; x++)
+                for (int y = 0; y < quadrantsInY; y++)
+                {
+                    if (quadrants[x, y] != 0) MarkSubQuadrants(x, y);
+                }
+
+            MakeMouseQuadrants();      
             GameObjects.ObjectCount = celDraw.Count;
         }
-        private void UpdateCels(bool Quadrants)
+        private void MakeMouseQuadrants()
+        {
+            int mouseX = ((int)GetMousePosition().X - widthControlPannal);
+            int mouseY = (int)GetMousePosition().Y;
+
+           
+            for (int i = 0; i < 360; i += brushAcc)
+            {
+                Vector2 cheakPoint = GetPointFromPoint(new Vector2(mouseX, mouseY), lastBrushSize, i);
+
+                if (i % 2 == 0)
+                    cheakPoint = GetPointFromPoint(new Vector2(mouseX, mouseY), lastBrushSize / 2, i);
+                if (i > 359 - brushAcc)
+                    cheakPoint = GetPointFromPoint(new Vector2(mouseX, mouseY), 1 , i);
+
+
+                int xIndex = (int)cheakPoint.X / (celSize * 10);
+                int yIndex = (int)cheakPoint.Y / (celSize * 10);
+
+                if (xIndex >= 0 && xIndex <= quadrantsInX - 1 && yIndex >= 0 && yIndex <= quadrantsInY - 1)
+                    mousQuadrants[xIndex, yIndex] = 1;
+            }
+        }
+
+        
+
+        private void UpdateCels()
         {
             oldCels = newCels;
             newCels = new int[maxCelsInX, maxCelsInY];
 
-            if (Quadrants)
+            if (cbQuadrantsUse.Checked)
             {
                 for (int qwadX = 0; qwadX < quadrantsInX; qwadX++)
                 { 
@@ -204,8 +284,7 @@ namespace GameEngineForms.Forms
                     }
                 }               
             }
-            else { UpdateCels_NOQuadrants(); }
-                      
+            else { UpdateCels_NOQuadrants(); }          
         }
         private void UpdateCels_NOQuadrants()
         {            
@@ -221,64 +300,71 @@ namespace GameEngineForms.Forms
         }
         private void DrawScene(PaintEventArgs e)
         {
+            if(cbDrawQuadrants.Checked)
+            DrawQuadrants(e);
+
             if (cbQuadrantsUse.Checked)
+            { 
                 if (quadDraw.Count != 0)
                 {
                     e.Graphics.DrawRectangles(new Pen(cdgColorSubQuadrantBorder.Color, 1), supQaudDraw.ToArray());
                     e.Graphics.DrawRectangles(new Pen(cdgColorQuadrantBorder.Color, 1), quadDraw.ToArray());
                 }
 
+                if (mousQuadDraw.Count != 0)
+                    e.Graphics.FillRectangles(new SolidBrush(cdgColorMousQuadrantBorder.Color), mousQuadDraw.ToArray());
+            }
+
             if (celDraw.Count != 0)
             {
                 e.Graphics.FillRectangles(new SolidBrush(cdgCelColor.Color), celDraw.ToArray());
                 e.Graphics.DrawRectangles(new Pen(cdgCelStrokeColor.Color, 1), celDraw.ToArray());
             }
-
-            quadrants = new int[quadrantsInX, quadrantsInY];
-            subQuadrants = new int[quadrantsInX, quadrantsInY];
         }
 
 
-        private void MakeQuadrants(bool draw,bool info)
+        public void BrushResizer(object sender, MouseEventArgs e)
         {
-            quadDraw.Clear();
-            supQaudDraw.Clear();
+            if (int.TryParse(txtbrushSize.Text.ToString(), out int value))
+                if (e.Delta > 0)
+                {
+                    value++;
+                    lastBrushSize = value;
+                    txtbrushSize.Text = "" + value;
+                }
+                else
+                {
+                    value--;
+                    lastBrushSize = value;
+                    txtbrushSize.Text = "" + value;
+                }
 
-            if (draw)
-            {              
-                for (int x = 0; x < quadrantsInX; x++)
-                    for (int y = 0; y < quadrantsInY; y++)
-                    {
-                        if (quadrants[x, y] != 0)
-                        {
-                            if(info)
-                                DrawText($"{quadrants[x, y]}", new Font("", celSize * 3), Color.White, new Vector2(x * (10 * celSize)+2, y * (10 * celSize)+2), null);
+            if (value < 1) txtbrushSize.Text = "1";
+            if (value > maxBrushSize) txtbrushSize.Text = "" + maxBrushSize;
 
-                            quadDraw.Add(new Rectangle(x * (10 * celSize), y * (10 * celSize), (10 * celSize), (10 * celSize)));
-                            MarkSubQuadrants(x, y);
-                        }
+        }
+        private void DrawQuadrants(PaintEventArgs e)
+        {                 
+            for (int x = 0; x < quadrantsInX; x++)
+                for (int y = 0; y < quadrantsInY; y++)
+                {
+                    if (quadrants[x, y] != 0)
+                    { 
+                        quadDraw.Add(new Rectangle(x * (10 * celSize), y * (10 * celSize), (10 * celSize), (10 * celSize)));
+                        if (cbDrawQuadrantsInfo.Checked) e.Graphics.DrawString($"{quadrants[x, y]}", new Font("", celSize * 3), Brushes.White, x * (10 * celSize) + 2, y * (10 * celSize) + 2);
                     }
 
-                for (int x = 0; x < quadrantsInX; x++)
-                    for (int y = 0; y < quadrantsInY; y++)
-                    {
-                        if (subQuadrants[x, y] != 0)
-                        {
-                            if(info)
-                                DrawText($"\n{subQuadrants[x, y]}", new Font("", celSize * 3), Color.White, new Vector2(x * (10 * celSize) + 2, y * (10 * celSize)+2), null);
-
-                            supQaudDraw.Add(new Rectangle(x * (10 * celSize), y * (10 * celSize), (10 * celSize), (10 * celSize)));
-                        }
+                    if (subQuadrants[x, y] != 0)
+                    { 
+                        supQaudDraw.Add(new Rectangle(x * (10 * celSize), y * (10 * celSize), (10 * celSize), (10 * celSize)));
+                        if (cbDrawQuadrantsInfo.Checked) e.Graphics.DrawString($"\n{subQuadrants[x, y]}", new Font("", celSize * 3), Brushes.White, x * (10 * celSize) + 2, y * (10 * celSize)+2);
                     }
-            }
-            else
-            {
-                for (int x = 0; x < quadrantsInX; x++)
-                    for (int y = 0; y < quadrantsInY; y++)
-                        if (quadrants[x, y] != 0)
-                            MarkSubQuadrants(x, y);
-            }
-          
+
+                    if (mousQuadrants[x, y] == 1)
+                        mousQuadDraw.Add(new Rectangle(x * (10 * celSize), y * (10 * celSize), (10 * celSize), (10 * celSize)));
+                    
+                }
+
         }      
         private void MarkSubQuadrants(int x, int y)
         {            
@@ -316,8 +402,6 @@ namespace GameEngineForms.Forms
                     : subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] += 1;
                            
         }
-
-
         private int Livingneighbors(int x, int y)
         {
             int tell = 0;
@@ -373,5 +457,16 @@ namespace GameEngineForms.Forms
             newCels[28 + x, 15 + y] = 1;
         }
 
+        private void Clear()
+        {
+            quadrants = new int[quadrantsInX, quadrantsInY];
+            subQuadrants = new int[quadrantsInX, quadrantsInY];
+            mousQuadrants = new int[quadrantsInX, quadrantsInY];
+
+            quadDraw.Clear();
+            supQaudDraw.Clear();
+            mousQuadDraw.Clear();
+            celDraw.Clear();
+        }
     }
 }

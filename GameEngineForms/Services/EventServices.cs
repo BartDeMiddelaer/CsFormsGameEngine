@@ -72,12 +72,14 @@ namespace GameEngineForms.Services
 
             GameObjects.FormToRun.Controls.Add(cb);
         }
-        public static void CreateTextBox(ref TextBox txt, Rectangle location, BorderStyle style, TextChangedAction action)
+        public static void CreateTextBox(ref TextBox txt, Point location, int width, string startValue,int maxLength, BorderStyle style, TextChangedAction action)
         {
             txt = new TextBox {
-                Text = "2",
-                Bounds = location,
-                BorderStyle = style
+                Text = startValue,
+                Location = location,
+                Width = width,
+                BorderStyle = style,
+                MaxLength = maxLength
             };
             if (action != null)
                 txt.TextChanged += (object sender, EventArgs e) => action();  
