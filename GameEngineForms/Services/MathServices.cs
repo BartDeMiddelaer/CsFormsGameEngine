@@ -73,8 +73,8 @@ namespace GameEngineForms.Services
                 (float)(from_.X + Math.Cos((Math.PI / 180.0) * h_) * l_),
                 (float)(from_.Y + Math.Sin((Math.PI / 180.0) * h_) * l_)
                 );
-        }
-        public static void Intersection_LineToLine(ref this Vector2 value, Vector2 s1, Vector2 e1, Vector2 s2, Vector2 e2)
+        }       
+        public static Vector2 Intersection_LineToLine(this Vector2 value, Vector2 s1, Vector2 e1, Vector2 s2, Vector2 e2)
         {
             float a1 = e1.Y - s1.Y;
             float b1 = s1.X - e1.X;
@@ -89,11 +89,12 @@ namespace GameEngineForms.Services
             float x = float.IsInfinity((b2 * c1 - b1 * c2) / delta) ? -2100 : (b2 * c1 - b1 * c2) / delta;
             float y = float.IsInfinity((a1 * c2 - a2 * c1) / delta) ? -2100 : (a1 * c2 - a2 * c1) / delta;
 
-            value = 
+            value =
                 Math.Sign(delta) > 0 
                 ? new Vector2(-2100,-2100)
                 : new Vector2(x, y);
 
+            return value;
         }
 
       //public static void IntersectionNearest_LineToLine(ref this Vector2 value, Vector2 s1, Vector2 e1, List<Line> lines)

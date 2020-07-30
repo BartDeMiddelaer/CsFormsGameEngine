@@ -31,10 +31,10 @@ namespace GameEngineForms.Forms
             HWSS
         };
 
-        Button btnPlayPauze, btnReset, btnSpawn;
         CheckBox cbQuadrantsUse, cbDrawQuadrants, cbDrawQuadrantsInfo, cbSolidBrush;
         ComboBox cmbPaterens;
         TextBox txtbrushSize;
+        Button btnPlayPauze;
 
         ColorDialog 
             cdgCelColor = new ColorDialog { Color = Color.Red }, 
@@ -63,8 +63,8 @@ namespace GameEngineForms.Forms
         #endregion
         public GameOfLife() => Initialize += () =>
         {
-            maxCelsInX = 600; // moet deelbaar door 10 zijn
-            maxCelsInY = 400; // moet deelbaar door 10 zijn
+            maxCelsInX = 500; // moet deelbaar door 10 zijn
+            maxCelsInY = 350; // moet deelbaar door 10 zijn
             quadrantsInX = maxCelsInX / 10;
             quadrantsInY = maxCelsInY / 10;
             widthControlPannal = 210;
@@ -108,16 +108,32 @@ namespace GameEngineForms.Forms
         {
             if (cbSolidBrush.Checked)
             {
-                for (int x = 0; x < quadrantsInX; x++)
-                    for (int y = 0; y < quadrantsInY; y++)
-                    {
-                        if (mousQuadrants[x, y] != 0)
+                if (brusType == "Circle")
+                {
+                    for (int x = 0; x < quadrantsInX; x++)
+                        for (int y = 0; y < quadrantsInY; y++)
                         {
+                            if (mousQuadrants[x, y] != 0)
+                            {
 
 
 
+                            }
                         }
-                    }
+                }
+                else
+                {
+                    for (int x = 0; x < quadrantsInX; x++)
+                        for (int y = 0; y < quadrantsInY; y++)
+                        {
+                            if (mousQuadrants[x, y] != 0)
+                            {
+
+
+
+                            }
+                        }
+                }
             }
             else
             { 
@@ -133,7 +149,7 @@ namespace GameEngineForms.Forms
                 running = running == true ? false : true;
                 btnPlayPauze.Text = running == true ? "Pauze" : "Play";
             }));
-            CreateButton(ref btnReset, "Clear", FlatStyle.System, new Rectangle(x + 104, y + 25, 76, 25), new btnAction(() => {
+            CreateButton("Clear", FlatStyle.System, new Rectangle(x + 104, y + 25, 76, 25), new btnAction(() => {
                 newCels = new int[maxCelsInX, maxCelsInY];
             }));
             CreateColorDialog(ref cdgCelColor, "Cel inner", FlatStyle.System, new Rectangle(x + 20, y + 55, 130, 25), new colorPicker_Ok_Action(() => Refresh()));         
@@ -174,37 +190,37 @@ namespace GameEngineForms.Forms
         {
             
             CreateComboBox(ref cmbPaterens, new Rectangle(x + 20, y + 25, 160, 25), Enum.GetValues(typeof(Paterens)), null);
-            CreateButton(ref btnSpawn, "Spawn", FlatStyle.System, new Rectangle(x + 20, y + 60, 50, 25), new btnAction(() => {
+            CreateButton("Spawn", FlatStyle.System, new Rectangle(x + 20, y + 60, 50, 25), new btnAction(() => {
 
                 GlitterGun(rand.Next(0, maxCelsInX - 35), rand.Next(0, maxCelsInY - 23));
                 drawMesage = cmbPaterens.SelectedItem.ToString();
                 Refresh();
             }));
             CreateTextBox(ref txtbrushSize, new Point(25, 125), 40, "" + StartBrushSize, 2, BorderStyle.Fixed3D, new TextChangedAction(() => Refresh()));
-            CreateButton(ref btnSpawn, "Draw", FlatStyle.System, new Rectangle(x + 70, y + 120, 50, 23), new btnAction(() => {
+            CreateButton("Draw", FlatStyle.System, new Rectangle(x + 70, y + 120, 50, 23), new btnAction(() => {
                 modeMesage = "Draw";
                 Refresh();
             }));
-            CreateButton(ref btnSpawn, "Erase", FlatStyle.System, new Rectangle(x + 130, y + 120, 50, 23), new btnAction(() => {
+            CreateButton("Erase", FlatStyle.System, new Rectangle(x + 130, y + 120, 50, 23), new btnAction(() => {
                 modeMesage = "Erase";
                 Refresh();
-            CreateButton(ref btnSpawn, "Erase", FlatStyle.System, new Rectangle(x + 130, y + 120, 50, 23), new btnAction(() => {
+            CreateButton("Erase", FlatStyle.System, new Rectangle(x + 130, y + 120, 50, 23), new btnAction(() => {
                 modeMesage = "Erase";
                 Refresh();
             }));
             }));
 
-            CreateButton(ref btnSpawn, "[]", FlatStyle.System, new Rectangle(x + 130, y + 150, 50, 47), new btnAction(() => {
+            CreateButton("[]", FlatStyle.System, new Rectangle(x + 130, y + 150, 50, 47), new btnAction(() => {
                 brusType = "Rect";
                 Refresh();
             }));
-            CreateButton(ref btnSpawn, "O", FlatStyle.System, new Rectangle(x + 130, y + 203, 50, 47), new btnAction(() => {
+            CreateButton("O", FlatStyle.System, new Rectangle(x + 130, y + 203, 50, 47), new btnAction(() => {
                 brusType = "Circle";
                 Refresh();
             }));
 
 
-            CreateCheckBox(ref cbSolidBrush, true, "Solid brush", Appearance.Normal, new Rectangle(x + 20, y + 260, 155, 25), null);
+            CreateCheckBox(ref cbSolidBrush, true, "Solid brush", Appearance.Normal, new Rectangle(x + 20, y + 260, 155, 25), new CheckedChangedAction(() => Refresh()));
 
             ControleDraw += (object sender, PaintEventArgs e) => {
                 e.Graphics.DrawString("Draw / Spawn Options ", new Font("", 10), Brushes.Red, x, y);
@@ -214,21 +230,46 @@ namespace GameEngineForms.Forms
                 e.Graphics.FillRectangle(Brushes.White, new Rectangle(x + 20, y + 150, 99, 99));
                 e.Graphics.DrawRectangle(Pens.Black, new Rectangle(x + 20, y + 150, 99, 99));               
 
-                e.Graphics.DrawLine(Pens.Black,new Point(x + 70, y + 150), new Point(x + 70, y + 249));
-                e.Graphics.DrawLine(Pens.Black,new Point(x + 20, y + 200), new Point(x + 119, y + 200));
+               
 
+                Vector2 centerPoint = new Vector2().Intersection_LineToLine(new Vector2(x + 70, y + 150),new Vector2(x + 70, y + 249),new Vector2(x + 20, y + 200),new Vector2(x + 119, y + 200));
 
                 if (brusType == "Circle")
                 {
-
-
+                    if (cbSolidBrush.Checked)
+                    {
+                        e.Graphics.FillEllipse(Brushes.Green,
+                           centerPoint.X - lastBrushSize,
+                           centerPoint.Y - lastBrushSize,
+                           lastBrushSize * 2,
+                           lastBrushSize * 2);
+                    }
+                    e.Graphics.DrawEllipse(Pens.Black, 
+                        centerPoint.X - lastBrushSize, 
+                        centerPoint.Y - lastBrushSize, 
+                        lastBrushSize *2, 
+                        lastBrushSize*2);
 
                 }
                 else
-                { 
-                
-                
+                {
+                    if (cbSolidBrush.Checked)
+                    {
+                        e.Graphics.FillRectangle(Brushes.Green,
+                           centerPoint.X - lastBrushSize,
+                           centerPoint.Y - lastBrushSize,
+                           lastBrushSize * 2,
+                           lastBrushSize * 2);
+                    }
+                    e.Graphics.DrawRectangle(Pens.Black,
+                        centerPoint.X - lastBrushSize,
+                        centerPoint.Y - lastBrushSize,
+                        lastBrushSize * 2,
+                        lastBrushSize * 2);
                 }
+
+                e.Graphics.DrawLine(Pens.Black, new Point(x + 70, y + 150), new Point(x + 70, y + 249));
+                e.Graphics.DrawLine(Pens.Black, new Point(x + 20, y + 200), new Point(x + 119, y + 200));
             };
         }
 
@@ -238,14 +279,7 @@ namespace GameEngineForms.Forms
             MakeCelsAndQuadrants();                          
             if(running) UpdateCels();          
             DrawScene(e);
-            Clear();
-            
-            e.Graphics.DrawEllipse(new Pen(Color.FromArgb(50,50,50),2),
-                new Rectangle(
-                    new Point(
-                        (int)GetMousePosition().X - (widthControlPannal + lastBrushSize),
-                        (int)GetMousePosition().Y - lastBrushSize),
-                    new Size(lastBrushSize * 2, lastBrushSize * 2)));   
+            Clear();                         
         }
         private void MakeCelsAndQuadrants()
         {          
@@ -268,30 +302,47 @@ namespace GameEngineForms.Forms
         }
         private void MakeMouseQuadrants()
         {
-            int mouseX = ((int)GetMousePosition().X - widthControlPannal);
-            int mouseY = (int)GetMousePosition().Y;
-
            
-            for (int i = 0; i < 360; i += brushAcc)
+            int mouseX = (int)Math.Ceiling(GetMousePosition().X - widthControlPannal);
+            int mouseY = (int)Math.Ceiling(GetMousePosition().Y);
+
+            if (brusType == "Circle")
             {
-                Vector2 cheakPoint = GetPointFromPoint(new Vector2(mouseX, mouseY), lastBrushSize, i);
+                for (int i = 0; i < 360; i += brushAcc)
+                {
+                    Vector2 cheakPoint = GetPointFromPoint(new Vector2(mouseX, mouseY), lastBrushSize, i);
 
-                if (i % 2 == 0)
-                    cheakPoint = GetPointFromPoint(new Vector2(mouseX, mouseY), lastBrushSize / 2, i);
-                if (i > 359 - brushAcc)
-                    cheakPoint = GetPointFromPoint(new Vector2(mouseX, mouseY), 1 , i);
+                    if (i % 2 == 0)
+                        cheakPoint = GetPointFromPoint(new Vector2(mouseX, mouseY), lastBrushSize / 2, i);
+                    if (i > 359 - brushAcc)
+                        cheakPoint = GetPointFromPoint(new Vector2(mouseX, mouseY), 1, i);
 
 
-                int xIndex = (int)cheakPoint.X / (celSize * 10);
-                int yIndex = (int)cheakPoint.Y / (celSize * 10);
+                    int xIndex = (int)cheakPoint.X / (celSize * 10);
+                    int yIndex = (int)cheakPoint.Y / (celSize * 10);
 
-                if (xIndex >= 0 && xIndex <= quadrantsInX - 1 && yIndex >= 0 && yIndex <= quadrantsInY - 1)
-                    mousQuadrants[xIndex, yIndex] = 1;
+                    if (xIndex >= 0 && xIndex <= quadrantsInX - 1 && yIndex >= 0 && yIndex <= quadrantsInY - 1)
+                        mousQuadrants[xIndex, yIndex] = 1;
+                }
+            }
+            else
+            {
+                Point leftTop = new Point((mouseX - lastBrushSize) / (celSize * 10), (mouseY - lastBrushSize) / (celSize * 10)),
+                        reghtTop = new Point((mouseX + lastBrushSize) / (celSize * 10), (mouseY - lastBrushSize) / (celSize * 10)),
+                        leftBottem = new Point((mouseX - lastBrushSize) / (celSize * 10), (mouseY + lastBrushSize) / (celSize * 10));
+
+                for (int x = leftTop.X; x <= reghtTop.X; x++)
+                {
+                    for (int y = leftTop.Y; y <= leftBottem.Y; y++)
+                    {
+                        if (x >= 0 && x <= quadrantsInX - 1 && y >= 0 && y <= quadrantsInY - 1)
+                            mousQuadrants[x, y] = 1;
+                    }
+                }
             }
         }
 
-        
-
+     
         private void UpdateCels()
         {
             oldCels = newCels;
@@ -362,6 +413,26 @@ namespace GameEngineForms.Forms
             {
                 e.Graphics.FillRectangles(new SolidBrush(cdgCelColor.Color), celDraw.ToArray());
                 e.Graphics.DrawRectangles(new Pen(cdgCelStrokeColor.Color, 1), celDraw.ToArray());
+            }
+
+
+            if (brusType == "Circle")
+            {
+                e.Graphics.DrawEllipse(new Pen(Color.FromArgb(100, 255, 0, 0), 2),
+                new Rectangle(
+                    new Point(
+                        (int)GetMousePosition().X - (widthControlPannal + lastBrushSize),
+                        (int)GetMousePosition().Y - lastBrushSize),
+                    new Size(lastBrushSize * 2, lastBrushSize * 2)));
+            }
+            else
+            {
+                e.Graphics.DrawRectangle(new Pen(Color.FromArgb(100, 255, 0, 0), 2),
+                new Rectangle(
+                    new Point(
+                        (int)GetMousePosition().X - (widthControlPannal + lastBrushSize),
+                        (int)GetMousePosition().Y - lastBrushSize),
+                    new Size(lastBrushSize * 2, lastBrushSize * 2)));
             }
         }
 
