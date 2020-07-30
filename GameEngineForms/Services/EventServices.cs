@@ -36,12 +36,13 @@ namespace GameEngineForms.Services
             {
                 Bounds = location,
                 Text = text,
-                FlatStyle = style
+                FlatStyle = style,
             };
 
             GameObjects.FormToRun.Controls.Add(btn);
             btn.Click += (object sender, EventArgs e) => action();
         }
+        
         public static void CreateColorDialog(ref ColorDialog cdg, string text, FlatStyle style, Rectangle location, colorPicker_Ok_Action action)
         {
             ColorDialog tempCdg = cdg ?? new ColorDialog();

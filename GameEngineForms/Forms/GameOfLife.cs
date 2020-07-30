@@ -32,7 +32,7 @@ namespace GameEngineForms.Forms
         };
 
         Button btnPlayPauze, btnReset, btnSpawn;
-        CheckBox cbQuadrantsUse, cbDrawQuadrants, cbDrawQuadrantsInfo;
+        CheckBox cbQuadrantsUse, cbDrawQuadrants, cbDrawQuadrantsInfo, cbSolidBrush;
         ComboBox cmbPaterens;
         TextBox txtbrushSize;
 
@@ -57,7 +57,8 @@ namespace GameEngineForms.Forms
         bool running = false;
 
         string drawMesage = "Nothing spawnd",
-               modeMesage = "Draw";
+               modeMesage = "Draw",
+               brusType = "Circle";
 
         #endregion
         public GameOfLife() => Initialize += () =>
@@ -94,8 +95,8 @@ namespace GameEngineForms.Forms
 
 
             DrawCelControles(5, 5);
-            CelControles(5, 265);
-            QuadrantsControles(5, 390);
+            CelControles(5, 295);
+            QuadrantsControles(5, 420);
 
             Paint += (object sender, PaintEventArgs e) => ControleDraw?.Invoke(sender, e);
             GameCycle += DrawLoop;
@@ -105,18 +106,25 @@ namespace GameEngineForms.Forms
 
         private void MouseDrawClick(object sender, MouseEventArgs e)
         {
-            for (int x = 0; x < quadrantsInX; x++)
-                for (int y = 0; y < quadrantsInY; y++)
-                {
-                    if (mousQuadrants[x, y] != 0)
-                    { 
-
-                    
-                    
-                    }                                        
-                }
+            if (cbSolidBrush.Checked)
+            {
+                for (int x = 0; x < quadrantsInX; x++)
+                    for (int y = 0; y < quadrantsInY; y++)
+                    {
+                        if (mousQuadrants[x, y] != 0)
+                        {
 
 
+
+                        }
+                    }
+            }
+            else
+            { 
+            
+            
+            }
+           
         }
 
         private void CelControles(int x, int y)
@@ -164,17 +172,15 @@ namespace GameEngineForms.Forms
         }
         private void DrawCelControles(int x, int y)
         {
-
+            
             CreateComboBox(ref cmbPaterens, new Rectangle(x + 20, y + 25, 160, 25), Enum.GetValues(typeof(Paterens)), null);
-            CreateButton(ref btnSpawn, "Spawn", FlatStyle.System, new Rectangle(x + 20, y + 55, 50, 25), new btnAction(() => {
+            CreateButton(ref btnSpawn, "Spawn", FlatStyle.System, new Rectangle(x + 20, y + 60, 50, 25), new btnAction(() => {
 
                 GlitterGun(rand.Next(0, maxCelsInX - 35), rand.Next(0, maxCelsInY - 23));
                 drawMesage = cmbPaterens.SelectedItem.ToString();
                 Refresh();
             }));
-
             CreateTextBox(ref txtbrushSize, new Point(25, 125), 40, "" + StartBrushSize, 2, BorderStyle.Fixed3D, new TextChangedAction(() => Refresh()));
-
             CreateButton(ref btnSpawn, "Draw", FlatStyle.System, new Rectangle(x + 70, y + 120, 50, 23), new btnAction(() => {
                 modeMesage = "Draw";
                 Refresh();
@@ -182,23 +188,47 @@ namespace GameEngineForms.Forms
             CreateButton(ref btnSpawn, "Erase", FlatStyle.System, new Rectangle(x + 130, y + 120, 50, 23), new btnAction(() => {
                 modeMesage = "Erase";
                 Refresh();
+            CreateButton(ref btnSpawn, "Erase", FlatStyle.System, new Rectangle(x + 130, y + 120, 50, 23), new btnAction(() => {
+                modeMesage = "Erase";
+                Refresh();
             }));
+            }));
+
+            CreateButton(ref btnSpawn, "[]", FlatStyle.System, new Rectangle(x + 130, y + 150, 50, 47), new btnAction(() => {
+                brusType = "Rect";
+                Refresh();
+            }));
+            CreateButton(ref btnSpawn, "O", FlatStyle.System, new Rectangle(x + 130, y + 203, 50, 47), new btnAction(() => {
+                brusType = "Circle";
+                Refresh();
+            }));
+
+
+            CreateCheckBox(ref cbSolidBrush, true, "Solid brush", Appearance.Normal, new Rectangle(x + 20, y + 260, 155, 25), null);
 
             ControleDraw += (object sender, PaintEventArgs e) => {
                 e.Graphics.DrawString("Draw / Spawn Options ", new Font("", 10), Brushes.Red, x, y);
-                e.Graphics.DrawString($"{drawMesage}", new Font("", 10), Brushes.Black, x + 80, y + 60);
-                e.Graphics.DrawString($"Mode: {modeMesage} / BrushSize: {txtbrushSize.Text}", new Font("", 10), Brushes.Black, x + 20, y + 95);
-
-
+                e.Graphics.DrawString($"{drawMesage}", new Font("", 10), Brushes.Black, x + 80, y + 65);
+                e.Graphics.DrawString($"Mode: {modeMesage} S: {txtbrushSize.Text} Sh: {brusType}", new Font("", 10), Brushes.Green, x + 20, y + 95);
 
                 e.Graphics.FillRectangle(Brushes.White, new Rectangle(x + 20, y + 150, 99, 99));
-                e.Graphics.DrawRectangle(Pens.Black, new Rectangle(x + 20, y + 150, 99, 99));
-
-
-                
+                e.Graphics.DrawRectangle(Pens.Black, new Rectangle(x + 20, y + 150, 99, 99));               
 
                 e.Graphics.DrawLine(Pens.Black,new Point(x + 70, y + 150), new Point(x + 70, y + 249));
                 e.Graphics.DrawLine(Pens.Black,new Point(x + 20, y + 200), new Point(x + 119, y + 200));
+
+
+                if (brusType == "Circle")
+                {
+
+
+
+                }
+                else
+                { 
+                
+                
+                }
             };
         }
 
