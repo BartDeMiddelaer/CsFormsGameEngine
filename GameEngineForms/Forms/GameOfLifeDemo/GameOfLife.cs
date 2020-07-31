@@ -39,8 +39,8 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
         Button btnPlayPauze;
 
         ColorDialog 
-            cdgCelColor = new ColorDialog { Color = Color.White }, 
-            cdgCelStrokeColor = new ColorDialog { Color = Color.Black }, 
+            cdgCelColor = new ColorDialog { Color = Color.Black }, 
+            cdgCelStrokeColor = new ColorDialog { Color = Color.White }, 
             cdgColorQuadrantBorder = new ColorDialog { Color = Color.FromArgb(125, 50, 125) },
             cdgColorSubQuadrantBorder = new ColorDialog { Color = Color.FromArgb(50, 0, 50) },
             cdgColorMousQuadrantBorder = new ColorDialog { Color = Color.FromArgb(100,255,255,0) };
@@ -68,8 +68,8 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
         #endregion
         public GameOfLife() => Initialize += () =>
         {
-            maxCelsInX = 550; // moet deelbaar door 10 zijn
-            maxCelsInY = 400; // moet deelbaar door 10 zijn
+            maxCelsInX = 800; // moet deelbaar door 10 zijn
+            maxCelsInY = 500; // moet deelbaar door 10 zijn
             quadrantsInX = maxCelsInX / 10;
             quadrantsInY = maxCelsInY / 10;
             widthControlPannal = 210;
@@ -114,14 +114,11 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
 
         private void MouseDraw()
         {
-
             int mouseX = (int)Math.Ceiling(GetMousePosition().X - widthControlPannal);
             int mouseY = (int)Math.Ceiling(GetMousePosition().Y);
 
             if (cbSolidBrush.Checked)
             {
-                
-                
                 for (int qwadX = 0; qwadX < quadrantsInX; qwadX++)
                 {
                     for (int qwadY = 0; qwadY < quadrantsInY; qwadY++)
@@ -145,10 +142,12 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
                                         if (Distance < lastBrushSize)
                                             if (modeMesage == "Draw") newCels[x, y] = 1;
                                             else newCels[x, y] = 0;
-
                                     }
                                     else
                                     {
+                                        if ((x * celSize) >= (mouseX - lastBrushSize) && (x * celSize) <= (mouseX + lastBrushSize) && 
+                                            (y * celSize) >= (mouseY - lastBrushSize) && (y * celSize) <= (mouseY+ lastBrushSize))
+
                                         if (modeMesage == "Draw") newCels[x, y] = 1;
                                         else newCels[x, y] = 0;
                                     }
@@ -157,13 +156,10 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
                         }
                     }
                 }
-                
-                                
             }
             else
-            { 
-            
-            
+            {
+              
             }
         }
 

@@ -33,7 +33,7 @@ namespace GameEngineForms.Resources
         public Form FormToRun { get; set; } = new GameOfLife(); // <------------ Set game here
         public PictureBox LoopContainer { get; set; } = new PictureBox();
         public SmoothingMode RenderMode { get; set; } = SmoothingMode.HighSpeed;
-        public int MinimumLodeScreenTime { get; set; } = 1000;
+        public int MinimumLodeScreenTime { get; set; } = 10;
 
 
         // -------------------------------------------------------------------------
