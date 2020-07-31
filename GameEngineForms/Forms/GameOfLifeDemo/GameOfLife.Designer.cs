@@ -6,7 +6,7 @@ using static GameEngineForms.Services.EventServices;
 using static GameEngineForms.Resources.DynamicResources;
 
 
-namespace GameEngineForms.Forms
+namespace GameEngineForms.Forms.GameOfLifeDemo
 {
     partial class GameOfLife
     {

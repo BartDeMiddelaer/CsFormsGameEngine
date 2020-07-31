@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Drawing;
+﻿using System.Collections.Generic;
 using System.Drawing.Drawing2D;
-using System.Text;
 using System.Windows.Forms;
-using GameEngineForms.Forms;
 using GameEngineForms.Resources.Shapes;
+using GameEngineForms.Forms.GameOfLifeDemo;
 using static GameEngineForms.Services.EventServices;
 
 
@@ -37,7 +33,7 @@ namespace GameEngineForms.Resources
         public Form FormToRun { get; set; } = new GameOfLife(); // <------------ Set game here
         public PictureBox LoopContainer { get; set; } = new PictureBox();
         public SmoothingMode RenderMode { get; set; } = SmoothingMode.HighSpeed;
-        public int MinimumLodeScreenTime { get; set; } = 20;
+        public int MinimumLodeScreenTime { get; set; } = 1000;
 
 
         // -------------------------------------------------------------------------

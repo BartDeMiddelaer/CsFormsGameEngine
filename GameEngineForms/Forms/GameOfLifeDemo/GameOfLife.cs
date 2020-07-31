@@ -10,8 +10,10 @@ using System.Numerics;
 using System.Drawing.Drawing2D;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
+using GameEngineForms.Forms.GameOfLifeDemo.Objects;
 
-namespace GameEngineForms.Forms
+
+namespace GameEngineForms.Forms.GameOfLifeDemo
 {
     public partial class GameOfLife : Form
     {
@@ -49,6 +51,8 @@ namespace GameEngineForms.Forms
         readonly List<Rectangle> quadDraw = new List<Rectangle>();
         readonly List<Rectangle> mousQuadDraw = new List<Rectangle>();
 
+        readonly List<CircleShape> staticCircleShapes = new List<CircleShape>();
+
         int[,] oldCels, newCels, mousQuadrants, quadrants, subQuadrants;
         int celSize, maxCelsInX, maxCelsInY, quadrantsInX, quadrantsInY,
             widthControlPannal, maxBrushSize, lastBrushSize, StartBrushSize,
@@ -59,7 +63,7 @@ namespace GameEngineForms.Forms
 
         string drawMesage = "Nothing spawnd",
                modeMesage = "Draw",
-               brusType = "Rect";
+               brusType = "Circle";
 
         #endregion
         public GameOfLife() => Initialize += () =>
@@ -294,18 +298,13 @@ namespace GameEngineForms.Forms
         }
         private void SolidAndPulsersControles(int x, int y)
         {
-               
-            
-            
-            
-            
-            
-            ControleDraw += (object sender, PaintEventArgs e) => { 
-                e.Graphics.DrawString("Shapes ", new Font("", 10), Brushes.Red, x, y);
+            ControleDraw += (object sender, PaintEventArgs e) =>  e.Graphics.DrawString("Shapes (WIP) ", new Font("", 10), Brushes.Red, x, y);
 
+            CreateButton("Static circle", FlatStyle.System, new Rectangle(x + 20, y + 25, 78, 25), new btnAction(() => staticCircleShapes.Add(new CircleShape())));
 
-            };
-
+           // CreateButton("Static circle", FlatStyle.System, new Rectangle(x + 104, y + 25, 76, 25), new btnAction(() => {}));
+           // CreateButton("Puls rect", FlatStyle.System, new Rectangle(x + 20, y + 55, 78, 25), new btnAction(() => {}));
+           // CreateButton("Puls circle", FlatStyle.System, new Rectangle(x + 104, y + 55, 76, 25), new btnAction(() => {}));
         }
 
 
