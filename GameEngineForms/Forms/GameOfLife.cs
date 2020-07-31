@@ -37,8 +37,8 @@ namespace GameEngineForms.Forms
         Button btnPlayPauze;
 
         ColorDialog 
-            cdgCelColor = new ColorDialog { Color = Color.Red }, 
-            cdgCelStrokeColor = new ColorDialog { Color = Color.DarkRed }, 
+            cdgCelColor = new ColorDialog { Color = Color.White }, 
+            cdgCelStrokeColor = new ColorDialog { Color = Color.Black }, 
             cdgColorQuadrantBorder = new ColorDialog { Color = Color.FromArgb(125, 50, 125) },
             cdgColorSubQuadrantBorder = new ColorDialog { Color = Color.FromArgb(50, 0, 50) },
             cdgColorMousQuadrantBorder = new ColorDialog { Color = Color.FromArgb(100,255,255,0) };
@@ -54,17 +54,18 @@ namespace GameEngineForms.Forms
             widthControlPannal, maxBrushSize, lastBrushSize, StartBrushSize,
             brushAcc;
 
-        bool running = false;
+        bool running = false,
+             drawing = false;
 
         string drawMesage = "Nothing spawnd",
                modeMesage = "Draw",
-               brusType = "Circle";
+               brusType = "Rect";
 
         #endregion
         public GameOfLife() => Initialize += () =>
         {
-            maxCelsInX = 500; // moet deelbaar door 10 zijn
-            maxCelsInY = 350; // moet deelbaar door 10 zijn
+            maxCelsInX = 550; // moet deelbaar door 10 zijn
+            maxCelsInY = 400; // moet deelbaar door 10 zijn
             quadrantsInX = maxCelsInX / 10;
             quadrantsInY = maxCelsInY / 10;
             widthControlPannal = 210;
@@ -94,53 +95,72 @@ namespace GameEngineForms.Forms
             mousQuadrants = new int[quadrantsInX, quadrantsInY];
 
 
-            DrawCelControles(5, 5);
-            CelControles(5, 295);
-            QuadrantsControles(5, 420);
+            CelControles(5,5);
+            DrawCelControles(5, 125);
+            SolidAndPulsersControles(5,410);
+            QuadrantsControles(5, 620);
 
             Paint += (object sender, PaintEventArgs e) => ControleDraw?.Invoke(sender, e);
             GameCycle += DrawLoop;
             MouseWheel += BrushResizer;
-            GameObjects.LoopContainer.MouseClick += MouseDrawClick;
+            GameObjects.LoopContainer.MouseDown += (object sender, MouseEventArgs e) => drawing = true;
+            GameObjects.LoopContainer.MouseUp += (object sender, MouseEventArgs e) => drawing = false;
         };
 
-        private void MouseDrawClick(object sender, MouseEventArgs e)
+
+        private void MouseDraw()
         {
+
+            int mouseX = (int)Math.Ceiling(GetMousePosition().X - widthControlPannal);
+            int mouseY = (int)Math.Ceiling(GetMousePosition().Y);
+
             if (cbSolidBrush.Checked)
             {
-                if (brusType == "Circle")
+                
+                
+                for (int qwadX = 0; qwadX < quadrantsInX; qwadX++)
                 {
-                    for (int x = 0; x < quadrantsInX; x++)
-                        for (int y = 0; y < quadrantsInY; y++)
+                    for (int qwadY = 0; qwadY < quadrantsInY; qwadY++)
+                    {
+                        if (mousQuadrants[qwadX, qwadY] != 0)
                         {
-                            if (mousQuadrants[x, y] != 0)
+                            for (int celXindex = 0; celXindex < 10; celXindex++)
                             {
+                                for (int celYindex = 0; celYindex < 10; celYindex++)
+                                {
+                                    int x = (qwadX * 10) + celXindex;
+                                    int y = (qwadY * 10) + celYindex;
 
+                                    Vector2 celVecter = new Vector2(x * celSize, y * celSize);
+                                    Vector2 brushCenter = new Vector2(mouseX, mouseY);
 
+                                    float Distance = Vector2.Distance(celVecter, brushCenter);
 
+                                    if (brusType == "Circle")
+                                    {
+                                        if (Distance < lastBrushSize)
+                                            if (modeMesage == "Draw") newCels[x, y] = 1;
+                                            else newCels[x, y] = 0;
+
+                                    }
+                                    else
+                                    {
+                                        if (modeMesage == "Draw") newCels[x, y] = 1;
+                                        else newCels[x, y] = 0;
+                                    }
+                                }
                             }
                         }
+                    }
                 }
-                else
-                {
-                    for (int x = 0; x < quadrantsInX; x++)
-                        for (int y = 0; y < quadrantsInY; y++)
-                        {
-                            if (mousQuadrants[x, y] != 0)
-                            {
-
-
-
-                            }
-                        }
-                }
+                
+                                
             }
             else
             { 
             
             
             }
-           
         }
 
         private void CelControles(int x, int y)
@@ -169,7 +189,7 @@ namespace GameEngineForms.Forms
         private void QuadrantsControles(int x, int y)
         {
             CreateCheckBox(ref cbQuadrantsUse, true, "Quadrant rendering", Appearance.Normal, new Rectangle(x +20, y + 25, 155, 25), null);           
-            CreateCheckBox(ref cbDrawQuadrants, true, "Draw Quadrant", Appearance.Normal, new Rectangle(x + 20, y + 50, 155, 25), null);
+            CreateCheckBox(ref cbDrawQuadrants, false, "Draw Quadrant", Appearance.Normal, new Rectangle(x + 20, y + 50, 155, 25), null);
             CreateCheckBox(ref cbDrawQuadrantsInfo, false, "Draw Quadrant info", Appearance.Normal, new Rectangle(x + 20, y + 75, 155, 25), null);
 
             CreateColorDialog(ref cdgColorQuadrantBorder, "QuadrantBorder", FlatStyle.System, new Rectangle(x + 20, y + 105, 130, 25), new colorPicker_Ok_Action(() => Refresh()));
@@ -196,7 +216,7 @@ namespace GameEngineForms.Forms
                 drawMesage = cmbPaterens.SelectedItem.ToString();
                 Refresh();
             }));
-            CreateTextBox(ref txtbrushSize, new Point(25, 125), 40, "" + StartBrushSize, 2, BorderStyle.Fixed3D, new TextChangedAction(() => Refresh()));
+            CreateTextBox(ref txtbrushSize, new Point(x + 20, y + 120), 40, "" + StartBrushSize, 2, BorderStyle.Fixed3D, new TextChangedAction(() => Refresh()));
             CreateButton("Draw", FlatStyle.System, new Rectangle(x + 70, y + 120, 50, 23), new btnAction(() => {
                 modeMesage = "Draw";
                 Refresh();
@@ -272,14 +292,30 @@ namespace GameEngineForms.Forms
                 e.Graphics.DrawLine(Pens.Black, new Point(x + 20, y + 200), new Point(x + 119, y + 200));
             };
         }
+        private void SolidAndPulsersControles(int x, int y)
+        {
+               
+            
+            
+            
+            
+            
+            ControleDraw += (object sender, PaintEventArgs e) => { 
+                e.Graphics.DrawString("Shapes ", new Font("", 10), Brushes.Red, x, y);
+
+
+            };
+
+        }
 
 
         private void DrawLoop(object sender, PaintEventArgs e)
         {
+            Clear();
             MakeCelsAndQuadrants();                          
             if(running) UpdateCels();          
+            if(drawing) MouseDraw();
             DrawScene(e);
-            Clear();                         
         }
         private void MakeCelsAndQuadrants()
         {          
@@ -297,7 +333,7 @@ namespace GameEngineForms.Forms
                     if (quadrants[x, y] != 0) MarkSubQuadrants(x, y);
                 }
 
-            MakeMouseQuadrants();      
+            MakeMouseQuadrants();              
             GameObjects.ObjectCount = celDraw.Count;
         }
         private void MakeMouseQuadrants()
@@ -340,9 +376,10 @@ namespace GameEngineForms.Forms
                     }
                 }
             }
+
         }
 
-     
+
         private void UpdateCels()
         {
             oldCels = newCels;
