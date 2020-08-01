@@ -27,23 +27,16 @@ namespace GameEngineForms.Forms.GameOfLifeDemo.Objects
                 Y = (GameObjects.LoopContainer.Height / 2)
             };
 
-            Radius = 40;
-
-            GameCycle += Draw;
+            Radius = 59;
+            GameCycle += loopAlgo;
             
         }
 
        
 
-        private void Draw(object sender, PaintEventArgs e)
+        private void loopAlgo(object sender, PaintEventArgs e)
         {
-
-            e.Graphics.FillEllipse(Brushes.Yellow, new Rectangle(new Point(Center.X - Radius, Center.Y - Radius), new Size(Radius*2, Radius*2) ));
-
-
-
-            e.Graphics.FillEllipse(Brushes.Red, new Rectangle(Center, new Size(5, 5) ));
-
+            
         }
     }
 }
