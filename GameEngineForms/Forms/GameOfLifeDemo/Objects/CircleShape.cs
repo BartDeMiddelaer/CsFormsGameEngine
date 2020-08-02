@@ -27,12 +27,24 @@ namespace GameEngineForms.Forms.GameOfLifeDemo.Objects
                 Y = (GameObjects.LoopContainer.Height / 2)
             };
 
-            Radius = 59;
+            Radius = 51;
             GameCycle += loopAlgo;
-            
+
+        }
+        public CircleShape(int x, int y, int r)
+        {
+            Center = new Point
+            {
+                X = x,
+                Y = y
+            };
+
+            Radius = r;
+            GameCycle += loopAlgo;
+
         }
 
-       
+
 
         private void loopAlgo(object sender, PaintEventArgs e)
         {

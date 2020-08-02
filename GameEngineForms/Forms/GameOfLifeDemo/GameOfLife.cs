@@ -12,6 +12,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using GameEngineForms.Forms.GameOfLifeDemo.Objects;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace GameEngineForms.Forms.GameOfLifeDemo
 {
@@ -22,6 +23,10 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
         /// </summary>
 
         #region Vars decleration
+
+
+        
+
 
         internal delegate void ControleDrawDelegate(object sender, PaintEventArgs e);
         internal static event ControleDrawDelegate ControleDraw;
@@ -39,8 +44,8 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
         Button btnPlayPauze;
 
         ColorDialog 
-            cdgCelColor = new ColorDialog { Color = Color.Black }, 
-            cdgCelStrokeColor = new ColorDialog { Color = Color.White }, 
+            cdgCelColor = new ColorDialog { Color = Color.White }, 
+            cdgCelStrokeColor = new ColorDialog { Color = Color.Black }, 
             cdgColorQuadrantBorder = new ColorDialog { Color = Color.FromArgb(125, 50, 125) },
             cdgColorSubQuadrantBorder = new ColorDialog { Color = Color.FromArgb(50, 0, 50) },
             cdgColorMousQuadrantBorder = new ColorDialog { Color = Color.FromArgb(100, 255, 255, 0) },
@@ -58,24 +63,26 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
         int[,] oldCels, newCels, mousQuadrants, quadrants, subQuadrants, circleShapeQuats;
         int celSize, maxCelsInX, maxCelsInY, quadrantsInX, quadrantsInY,
             widthControlPannal, maxBrushSize, lastBrushSize, StartBrushSize,
-            brushAcc;
+            brushAcc, maxParallelIterations;
 
-        bool running = false,
+        bool running = true,
              drawing = false;
 
         string drawMesage = "Nothing spawnd",
                modeMesage = "Draw",
-               brusType = "Circle";
+               brusType = "Rect";
+
 
         #endregion
         public GameOfLife() => Initialize += () =>
         {
-            maxCelsInX = 850; // moet deelbaar door 10 zijn
-            maxCelsInY = 450; // moet deelbaar door 10 zijn
+            celSize = 1;
+            maxParallelIterations = 10;// moet deelbaar door 10 zijn
+            maxCelsInX = 1040 / celSize; // moet deelbaar door 10 zijn
+            maxCelsInY = 800 / celSize; // moet deelbaar door 10 zijn
             quadrantsInX = maxCelsInX / 10;
             quadrantsInY = maxCelsInY / 10;
             widthControlPannal = 210;
-            celSize = 2;
             maxBrushSize = 50;
             StartBrushSize = maxBrushSize;
             lastBrushSize = StartBrushSize;
@@ -103,8 +110,8 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
 
 
             CelControles(5,5);
-            DrawCelControles(5, 125);
-            SolidAndPulsersControles(5,410);
+            DrawCelControles(5, 180);
+            SolidAndPulsersControles(5,465);
             QuadrantsControles(5, 620);
 
             Paint += (object sender, PaintEventArgs e) => ControleDraw?.Invoke(sender, e);
@@ -115,6 +122,66 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
 
         };
 
+        private void UpdateCels()
+        {
+            oldCels = newCels;
+            newCels = new int[maxCelsInX, maxCelsInY];
+
+            int partSize = quadrantsInY / maxParallelIterations;
+
+            if (cbQuadrantsUse.Checked)
+            {
+
+                Parallel.For(0, maxParallelIterations, new ParallelOptions() { MaxDegreeOfParallelism = Environment.ProcessorCount}, thread =>
+                {
+                    for (int qwadX = 0; qwadX < quadrantsInX; qwadX++)
+                    {
+                        for (int qwadY = thread * partSize; qwadY < (thread+1) * partSize; qwadY++)
+                        {
+                            if (quadrants[qwadX, qwadY] != 0 || subQuadrants[qwadX, qwadY] != 0)
+                            {
+                                for (int celXindex = 0; celXindex < 10; celXindex++)
+                                {
+                                    for (int celYindex = 0; celYindex < 10; celYindex++)
+                                    {
+                                        int x = (qwadX * 10) + celXindex;
+                                        int y = (qwadY * 10) + celYindex;
+
+                                        if (oldCels[x, y] == 1)
+                                        {
+                                            if (Livingneighbors(x, y) == 2 || Livingneighbors(x, y) == 3) { newCels[x, y] = 1; }
+                                            if (Livingneighbors(x, y) > 4 || Livingneighbors(x, y) < 2) { newCels[x, y] = 0; }
+                                        }
+                                        else
+                                        {
+                                            if (Livingneighbors(x, y) == 3) { newCels[x, y] = 1; }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                });
+            }
+            else
+            {
+                UpdateCels_NOQuadrants();
+            }
+
+        }
+        private void UpdateCels_NOQuadrants()
+        {
+            for (int x = 0; x < maxCelsInX; x++)
+            {
+                for (int y = 0; y < maxCelsInY; y++)
+                {
+                    if (oldCels[x, y] == 1 && (Livingneighbors(x, y) == 2 || Livingneighbors(x, y) == 3)) { newCels[x, y] = 1; }
+                    if (oldCels[x, y] == 1 && Livingneighbors(x, y) > 4 || oldCels[x, y] == 1 && Livingneighbors(x, y) < 2) { newCels[x, y] = 0; }
+                    if (oldCels[x, y] == 0 && Livingneighbors(x, y) == 3) { newCels[x, y] = 1; }
+                }
+            }
+        }
 
         private void MouseDraw()
         {
@@ -304,7 +371,13 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
         {
             ControleDraw += (object sender, PaintEventArgs e) =>  e.Graphics.DrawString("Shapes (WIP) ", new Font("", 10), Brushes.Red, x, y);
 
-            CreateButton("Static circle", FlatStyle.System, new Rectangle(x + 20, y + 25, 78, 25), new btnAction(() => staticCircleShapes.Add(new CircleShape())));
+            CreateButton("Static circle", FlatStyle.System, new Rectangle(x + 20, y + 25, 78, 25), new btnAction(() => {
+                
+                staticCircleShapes.Add(new CircleShape((int)(GameObjects.LoopContainer.Width / 1.25), (int)(GameObjects.LoopContainer.Height / 1.25), 60));
+                staticCircleShapes.Add(new CircleShape((int)(GameObjects.LoopContainer.Width / 2), (GameObjects.LoopContainer.Height / 2), 51));
+                staticCircleShapes.Add(new CircleShape((int)(GameObjects.LoopContainer.Width / 5), (GameObjects.LoopContainer.Height / 5), 31));
+            }));
+
 
            // CreateButton("Static circle", FlatStyle.System, new Rectangle(x + 104, y + 25, 76, 25), new btnAction(() => {}));
            // CreateButton("Puls rect", FlatStyle.System, new Rectangle(x + 20, y + 55, 78, 25), new btnAction(() => {}));
@@ -317,7 +390,6 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
             Clear();
             MakeCelsAndQuadrants();                          
             if(running) UpdateCels(); 
-            else newCels = new int[maxCelsInX, maxCelsInY];
 
             if (drawing) MouseDraw();
             ShapeDraw();
@@ -431,8 +503,8 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
             int mouseX = (int)Math.Ceiling(GetMousePosition().X - widthControlPannal);
             int mouseY = (int)Math.Ceiling(GetMousePosition().Y);
 
-            Parallel.ForEach(staticCircleShapes, shape => {
-
+            foreach (var shape in staticCircleShapes)
+            {          
                 for (int r = 0; r < shape.Radius; r += 10)
                 {
                     for (int i = 0; i < 360; i += brushAcc)
@@ -447,69 +519,22 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
                             circleShapeQuats[xIndex, yIndex] = 1;
                     }
                 }
-            });
+            }
 
 
             // add rect Qwads
 
-           
+
         }
 
 
-        private void UpdateCels()
-        {
-            oldCels = newCels;
-            newCels = new int[maxCelsInX, maxCelsInY];
 
-            if (cbQuadrantsUse.Checked)
-            {
-                for (int qwadX = 0; qwadX < quadrantsInX; qwadX++)
-                {                   
-                    for (int qwadY = 0; qwadY < quadrantsInY; qwadY++)
-                    {
-                        if (quadrants[qwadX, qwadY] != 0 || subQuadrants[qwadX, qwadY] != 0)
-                        { 
-                            for (int celXindex = 0; celXindex < 10; celXindex++)
-                            {
-                                for (int celYindex = 0; celYindex < 10; celYindex++)
-                                {
-                                    int x = (qwadX * 10) + celXindex;
-                                    int y = (qwadY * 10) + celYindex;
-
-                                    if (oldCels[x, y] == 1)
-                                    {
-                                        if (Livingneighbors(x, y) == 2 || Livingneighbors(x, y) == 3) { newCels[x, y] = 1; }
-                                        if (Livingneighbors(x, y) > 4 || Livingneighbors(x, y) < 2) { newCels[x, y] = 0; }
-                                    }
-                                    else
-                                    {
-                                        if (Livingneighbors(x, y) == 3) { newCels[x, y] = 1; }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }               
-            }
-            else { UpdateCels_NOQuadrants(); }          
-        }
-        private void UpdateCels_NOQuadrants()
-        {            
-            for (int x = 0; x < maxCelsInX; x++)
-            {
-                for (int y = 0; y < maxCelsInY; y++)
-                {
-                    if (oldCels[x, y] == 1 && (Livingneighbors(x, y) == 2 || Livingneighbors(x, y) == 3)) { newCels[x, y] = 1; }
-                    if (oldCels[x, y] == 1 && Livingneighbors(x, y) > 4 || oldCels[x, y] == 1 && Livingneighbors(x, y) < 2) { newCels[x, y] = 0; }
-                    if (oldCels[x, y] == 0 && Livingneighbors(x, y) == 3) { newCels[x, y] = 1; }
-                }
-            }                                         
-        }
         private void DrawScene(PaintEventArgs e)
         {
             if(cbDrawQuadrants.Checked)
             DrawQuadrants(e);
 
+            
             if (cbQuadrantsUse.Checked)
             { 
                 if (quadDraw.Count != 0)
@@ -527,8 +552,14 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
 
             if (celDraw.Count != 0)
             {
-                e.Graphics.FillRectangles(new SolidBrush(cdgCelColor.Color), celDraw.ToArray());
-                e.Graphics.DrawRectangles(new Pen(cdgCelStrokeColor.Color, 1), celDraw.ToArray());
+
+
+
+                if (cdgCelColor.Color != Color.Black)
+                    e.Graphics.FillRectangles(new SolidBrush(cdgCelColor.Color), celDraw.ToArray());
+
+                if (celSize != 1 && cdgCelStrokeColor.Color != Color.Black)
+                    e.Graphics.DrawRectangles(new Pen(cdgCelStrokeColor.Color, 1), celDraw.ToArray());
             }
 
             // brush sape on screen
