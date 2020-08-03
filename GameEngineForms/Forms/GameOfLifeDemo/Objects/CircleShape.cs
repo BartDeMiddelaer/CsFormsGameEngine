@@ -7,12 +7,13 @@ using static GameEngineForms.Services.MathServices;
 using static GameEngineForms.Resources.DynamicResources;
 using System.Drawing;
 using System.Windows.Forms;
+using System.Numerics;
 
 namespace GameEngineForms.Forms.GameOfLifeDemo.Objects
 {
     public class CircleShape
     {
-        public Point Center { get; set; }
+        public Vector2 Center { get; set; }
         public int Radius { get; set; }
 
 
@@ -21,7 +22,7 @@ namespace GameEngineForms.Forms.GameOfLifeDemo.Objects
 
         public CircleShape()
         {
-            Center = new Point
+            Center = new Vector2
             {
                 X = (GameObjects.LoopContainer.Width / 2),
                 Y = (GameObjects.LoopContainer.Height / 2)
@@ -33,11 +34,19 @@ namespace GameEngineForms.Forms.GameOfLifeDemo.Objects
         }
         public CircleShape(int x, int y, int r)
         {
-            Center = new Point
+            Center = new Vector2
             {
                 X = x,
                 Y = y
             };
+
+            Radius = r;
+            GameCycle += loopAlgo;
+
+        }
+        public CircleShape(Vector2 pos, int r)
+        {
+            Center = pos;
 
             Radius = r;
             GameCycle += loopAlgo;
