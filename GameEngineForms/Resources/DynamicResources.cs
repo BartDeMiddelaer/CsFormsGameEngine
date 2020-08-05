@@ -5,7 +5,6 @@ using GameEngineForms.Resources.Shapes;
 using GameEngineForms.Forms.GameOfLifeDemo;
 using static GameEngineForms.Services.EventServices;
 
-
 namespace GameEngineForms.Resources
 {
     public sealed class DynamicResources
@@ -30,6 +29,7 @@ namespace GameEngineForms.Resources
         // -------------------------------------------------------------------------
 
         // Life Time Porpertys -----------------------------------------------------
+
         public Form FormToRun { get; set; } = new GameOfLife(); // <------------ Set game here
         public PictureBox LoopContainer { get; set; } = new PictureBox();
         public SmoothingMode RenderMode { get; set; } = SmoothingMode.HighSpeed;
@@ -49,15 +49,17 @@ namespace GameEngineForms.Resources
         public int ObjectCount { get; set; } = 0;
 
         // GameCycle Porpertys Reseting
-        public DynamicResources() => Destructor += () => {
+        public DynamicResources() {
 
-            LineGeometry.Clear();
-            RectGeometry.Clear();
-            CircleGeometry.Clear();
-            EllipseGeometry.Clear();
-            TextGeometry.Clear();
-            ObjectCount = 0;
-        };
+            Destructor += () => {
+                LineGeometry.Clear();
+                RectGeometry.Clear();
+                CircleGeometry.Clear();
+                EllipseGeometry.Clear();
+                TextGeometry.Clear();
+                ObjectCount = 0;
+            };           
+        } 
 
         // -------------------------------------------------------------------------
     }  

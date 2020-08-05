@@ -13,21 +13,17 @@ using System.Diagnostics;
 using GameEngineForms.Forms.GameOfLifeDemo.Objects;
 using System.Threading.Tasks;
 using System.Threading;
+using System.IO;
 
 namespace GameEngineForms.Forms.GameOfLifeDemo
 {
-    public partial class GameOfLife : Form
+    public partial class GameOfLife : Form    
     {
         /// <summary>
         /// https://www.youtube.com/watch?v=6avJHaC3C2U
         /// </summary>
 
         #region Vars decleration
-
-
-        
-
-
         internal delegate void ControleDrawDelegate(object sender, PaintEventArgs e);
         internal static event ControleDrawDelegate ControleDraw;
 
@@ -43,10 +39,12 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
         TextBox txtbrushSize;
         Button btnPlayPauze;
 
-        ColorDialog 
-            cdgCelColor = new ColorDialog { Color = Color.White }, 
+        ColorDialog
+            cdgCelColor = new ColorDialog { Color = Color.White },
             cdgColorQuadrantBorder = new ColorDialog { Color = Color.FromArgb(125, 50, 125) },
-            cdgColorSubQuadrantBorder = new ColorDialog { Color = Color.FromArgb(50, 0, 50) },
+            cdgColorSubQuadrantBorder = new ColorDialog { Color = Color.FromArgb(50, 0, 50) };
+
+        readonly ColorDialog
             cdgColorMousQuadrantBorder = new ColorDialog { Color = Color.FromArgb(100, 255, 255, 0) },
             cdgColorShapeQuadrantBorder = new ColorDialog { Color = Color.Green };
 
@@ -64,7 +62,7 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
             widthControlPannal, maxBrushSize, lastBrushSize, StartBrushSize,
             brushAcc, maxParallelIterations;
 
-        bool running = false,
+        bool running = true,
              drawing = false;
 
         string drawMesage = "Nothing spawnd",
@@ -83,7 +81,7 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
             quadrantsInX = maxCelsInX / 10;
             quadrantsInY = maxCelsInY / 10;
             widthControlPannal = 210;
-            maxBrushSize = 50;
+            maxBrushSize = 200;
             StartBrushSize = maxBrushSize;
             lastBrushSize = StartBrushSize;
             brushAcc = 1;
@@ -118,12 +116,16 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
             GameCycle += DrawLoop;
             MouseWheel += BrushResizer;
             GameObjects.LoopContainer.MouseDown += (object sender, MouseEventArgs e) => drawing = true;
-            GameObjects.LoopContainer.MouseUp += (object sender, MouseEventArgs e) => drawing = false;
-
+            GameObjects.LoopContainer.MouseUp += (object sender, MouseEventArgs e) => drawing = false;       
         };
 
         private void UpdateCels()
         {
+            // cuda
+            //https://www.youtube.com/watch?v=2EbHSCvGFM0
+            //https://www.youtube.com/watch?v=kzXjRFL-gjo
+            //https://www.youtube.com/watch?v=G5-iI1ogDW4
+
             oldCels = newCels;
             newCels = new int[maxCelsInX, maxCelsInY];
 
@@ -135,7 +137,10 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
                 {
                     for (int qwadX = 0; qwadX < quadrantsInX; qwadX++)
                     {
-                        for (int qwadY = thread * partSize; qwadY < (thread+1) * partSize; qwadY++)
+                        int start = thread * partSize;
+                        int stop = Math.Min((thread + 1) * partSize, quadrantsInY);
+
+                        for (int qwadY = start; qwadY < stop; qwadY++)
                         {
                             if (quadrants[qwadX, qwadY] != 0 || subQuadrants[qwadX, qwadY] != 0)
                             {
@@ -160,15 +165,15 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
                             }
                         }
                     }
-
                 });
             }
             else
             {
                 UpdateCels_NOQuadrants();
             }
-
+          
         }
+
         private void UpdateCels_NOQuadrants()
         {
             for (int x = 0; x < maxCelsInX; x++)
@@ -181,7 +186,6 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
                 }
             }
         }
-
         private void MouseDraw()
         {
             int mouseX = (int)Math.Ceiling(GetMousePosition().X - widthControlPannal);
@@ -232,10 +236,9 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
               
             }
         }
-
         private void CelControles(int x, int y)
         {
-            CreateButton(ref btnPlayPauze, "Play", FlatStyle.System, new Rectangle(x + 20, y + 25, 78, 25), new btnAction(() => {
+            CreateButton(ref btnPlayPauze, "Pauze", FlatStyle.System, new Rectangle(x + 20, y + 25, 78, 25), new btnAction(() => {
                 running = running == true ? false : true;
                 btnPlayPauze.Text = running == true ? "Pauze" : "Play";
             }));
@@ -327,14 +330,14 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
         private void DrawCelControles(int x, int y)
         {
             
-            CreateComboBox(ref cmbPaterens, new Rectangle(x + 20, y + 25, 160, 25), Enum.GetValues(typeof(Paterens)), null);
+            CreateComboBox(ref cmbPaterens, new Rectangle(x + 20, y + 25, 160, 25), Enum.GetValues(typeof(Paterens)));
             CreateButton("Spawn", FlatStyle.System, new Rectangle(x + 20, y + 60, 50, 25), new btnAction(() => {
 
                 GlitterGun(rand.Next(0, maxCelsInX - 35), rand.Next(0, maxCelsInY - 23));
                 drawMesage = cmbPaterens.SelectedItem.ToString();
                 Refresh();
             }));
-            CreateTextBox(ref txtbrushSize, new Point(x + 20, y + 120), 40, "" + StartBrushSize, 2, BorderStyle.Fixed3D, new TextChangedAction(() => Refresh()));
+            CreateTextBox(ref txtbrushSize, new Point(x + 20, y + 120), 40, "" + StartBrushSize, 3, BorderStyle.Fixed3D, new TextChangedAction(() => Refresh()));
             CreateButton("Draw", FlatStyle.System, new Rectangle(x + 70, y + 120, 50, 23), new btnAction(() => {
                 modeMesage = "Draw";
                 Refresh();
@@ -377,16 +380,16 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
                     if (cbSolidBrush.Checked)
                     {
                         e.Graphics.FillEllipse(Brushes.Green,
-                           centerPoint.X - (lastBrushSize / 2),
-                           centerPoint.Y - (lastBrushSize / 2),
-                           lastBrushSize,
-                           lastBrushSize);
+                           centerPoint.X - (lastBrushSize / 4),
+                           centerPoint.Y - (lastBrushSize / 4),
+                           lastBrushSize / 2,
+                           lastBrushSize / 2);
                     }
                     e.Graphics.DrawEllipse(Pens.Black, 
-                        centerPoint.X - (lastBrushSize / 2), 
-                        centerPoint.Y - (lastBrushSize / 2), 
-                        lastBrushSize, 
-                        lastBrushSize);
+                        centerPoint.X - (lastBrushSize / 4), 
+                        centerPoint.Y - (lastBrushSize / 4), 
+                        lastBrushSize / 2, 
+                        lastBrushSize / 2);
 
                 }
                 else
@@ -394,16 +397,16 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
                     if (cbSolidBrush.Checked)
                     {
                         e.Graphics.FillRectangle(Brushes.Green,
-                           centerPoint.X - (lastBrushSize / 2),
-                           centerPoint.Y - (lastBrushSize / 2),
-                           lastBrushSize,
-                           lastBrushSize);
+                           centerPoint.X - (lastBrushSize / 4),
+                           centerPoint.Y - (lastBrushSize / 4),
+                           lastBrushSize / 2,
+                           lastBrushSize / 2);
                     }
                     e.Graphics.DrawRectangle(Pens.Black,
-                        centerPoint.X - (lastBrushSize / 2),
-                        centerPoint.Y - (lastBrushSize / 2),
-                        lastBrushSize,
-                        lastBrushSize);
+                        centerPoint.X - (lastBrushSize / 4),
+                        centerPoint.Y - (lastBrushSize / 4),
+                        lastBrushSize / 2,
+                        lastBrushSize / 2);
                 }
 
                 e.Graphics.DrawLine(Pens.Black, new Point(x + 70, y + 150), new Point(x + 70, y + 249));
@@ -426,8 +429,6 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
             CreateButton("Puls rect", FlatStyle.System, new Rectangle(x + 20, y + 55, 78, 25), new btnAction(() => {}));
             CreateButton("Puls circle", FlatStyle.System, new Rectangle(x + 104, y + 55, 76, 25), new btnAction(() => {}));
         }
-
-
         private void DrawLoop(object sender, PaintEventArgs e)
         {
             Clear();
@@ -442,13 +443,14 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
             if (staticCircleShapes.Count != 0)
             {
 
-                staticCircleShapes.ToArray()[0].Center = GetPointFromPoint(GetPointFromPoint(new Vector2((GameObjects.LoopContainer.Width / 2), (GameObjects.LoopContainer.Height / 2)), 200, -angelTikker * 3), 100, angelTikker);
+                staticCircleShapes.ToArray()[0].Center = GetPointFromPoint(GetPointFromPoint(new Vector2((GameObjects.LoopContainer.Width / 2), (GameObjects.LoopContainer.Height / 2)), 200, -angelTikker * 3), 200, angelTikker);
                 staticCircleShapes.ToArray()[1].Center = GetPointFromPoint(new Vector2((GameObjects.LoopContainer.Width / 2), (GameObjects.LoopContainer.Height / 2)), 200, angelTikker);
             
             }
 
-           angelTikker.AddValuePerSec(200);
-           //angelTikker += 0.9f;
+           angelTikker.AddValuePerSec(45);
+           
+            //angelTikker += 0.9f;
 
         }
         private void ShapeDraw()
@@ -515,7 +517,6 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
         }
         private void MakeMouseQuadrants()
         {
-           
             int mouseX = (int)Math.Ceiling(GetMousePosition().X - widthControlPannal);
             int mouseY = (int)Math.Ceiling(GetMousePosition().Y);
 
@@ -525,9 +526,8 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
                 {
                     for (int i = 0; i < 360; i += brushAcc)
                     {
-                        Vector2 cheakPoint = GetPointFromPoint(new Vector2(mouseX, mouseY), lastBrushSize, i);
 
-                        cheakPoint = GetPointFromPoint(new Vector2(mouseX, mouseY), lastBrushSize-r, i);
+                        Vector2 cheakPoint = GetPointFromPoint(new Vector2(mouseX, mouseY), lastBrushSize-r, i);
                         int xIndex = (int)cheakPoint.X / (celSize * 10);
                         int yIndex = (int)cheakPoint.Y / (celSize * 10);
 
@@ -579,9 +579,6 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
 
 
         }
-
-
-
         private void DrawScene(PaintEventArgs e)
         {
             if(cbDrawQuadrants.Checked)
@@ -628,8 +625,6 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
                     new Size(lastBrushSize * 2, lastBrushSize * 2)));
             }
         }
-
-
         public void BrushResizer(object sender, MouseEventArgs e)
         {
             if (int.TryParse(txtbrushSize.Text.ToString(), out int value))
@@ -765,7 +760,6 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
             newCels[29 + x, 14 + y] = 1; 
             newCels[28 + x, 15 + y] = 1;
         }
-
         private void Clear()
         {
             quadrants = new int[quadrantsInX, quadrantsInY];
@@ -779,5 +773,13 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
             celDraw.Clear();
             circleShapeQuadDraw.Clear();
         }
+
+
+
+
     }
+
+
+
+
 }

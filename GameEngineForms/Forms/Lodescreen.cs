@@ -11,6 +11,7 @@ using GameEngineForms.Resources;
 using Timer = System.Windows.Forms.Timer;
 using System.Collections.Generic;
 using GameEngineForms.Services;
+using GameEngineForms.Forms.GameOfLifeDemo;
 
 namespace GameEngineForms.Forms
 {

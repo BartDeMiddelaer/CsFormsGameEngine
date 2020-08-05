@@ -14,6 +14,10 @@ namespace GameEngineForms.Services
         internal delegate void DrawDelegate(object sender, PaintEventArgs e);
         internal static event DrawDelegate GameCycle;
 
+        public static void InvokeGPUAccel() => GPUAccel?.Invoke();
+        internal delegate void GPUAccelDelegate();
+        internal static event GPUAccelDelegate GPUAccel;
+
         public static void InvokeInitialize() => Initialize?.Invoke();
         internal delegate void InitializeDelegate();
         internal static event InitializeDelegate Initialize;
@@ -100,7 +104,7 @@ namespace GameEngineForms.Services
             GameObjects.FormToRun.Controls.Add(txt);
         }
 
-        public static void CreateComboBox(ref ComboBox cmb, Rectangle location, Array items, SelectionChangedAction action)
+        public static void CreateComboBox(ref ComboBox cmb, Rectangle location, Array items)
         {
             cmb = new ComboBox { 
                 Bounds = location

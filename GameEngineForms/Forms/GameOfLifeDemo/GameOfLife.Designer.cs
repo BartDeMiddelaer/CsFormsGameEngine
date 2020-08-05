@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
 using static GameEngineForms.Services.EventServices;
-using static GameEngineForms.Resources.DynamicResources;
+
 
 
 namespace GameEngineForms.Forms.GameOfLifeDemo
@@ -21,6 +21,14 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
         {
+
+
+            cdgCelColor.Dispose();
+            cdgColorQuadrantBorder.Dispose();
+            cdgColorSubQuadrantBorder.Dispose();
+            cdgColorMousQuadrantBorder.Dispose();
+            cdgColorShapeQuadrantBorder.Dispose();
+
             if (disposing && (components != null))
             {
                 components.Dispose();
