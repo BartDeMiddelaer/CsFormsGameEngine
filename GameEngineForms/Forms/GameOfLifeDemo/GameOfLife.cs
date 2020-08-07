@@ -69,8 +69,6 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
                modeMesage = "Draw",
                brusType = "Rect";
 
-        float angelTikker = 0;
-
         #endregion
         public GameOfLife() => Initialize += () =>
         {
@@ -82,7 +80,7 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
             quadrantsInY = maxCelsInY / 10;
             widthControlPannal = 210;
             maxBrushSize = 200;
-            StartBrushSize = maxBrushSize;
+            StartBrushSize = maxBrushSize/4;
             lastBrushSize = StartBrushSize;
             brushAcc = 1;
 
@@ -119,61 +117,53 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
             GameObjects.LoopContainer.MouseUp += (object sender, MouseEventArgs e) => drawing = false;       
         };
 
+
         private void UpdateCels()
         {
             // cuda
             //https://www.youtube.com/watch?v=2EbHSCvGFM0
             //https://www.youtube.com/watch?v=kzXjRFL-gjo
             //https://www.youtube.com/watch?v=G5-iI1ogDW4
+            //https://www.youtube.com/watch?v=nCM_H9nLZdA
 
             oldCels = newCels;
             newCels = new int[maxCelsInX, maxCelsInY];
 
-            int partSize = quadrantsInY / maxParallelIterations;
-
             if (cbQuadrantsUse.Checked)
-            {
-                Parallel.For(0, maxParallelIterations, new ParallelOptions() { MaxDegreeOfParallelism = Environment.ProcessorCount}, thread =>
+           
+                Parallel.For(0, quadrantsInY, new ParallelOptions() { MaxDegreeOfParallelism = Environment.ProcessorCount }, QwadYLine =>
                 {
-                    for (int qwadX = 0; qwadX < quadrantsInX; qwadX++)
+                    for (int quadOnX = 0; quadOnX < quadrantsInX; quadOnX++)
                     {
-                        int start = thread * partSize;
-                        int stop = Math.Min((thread + 1) * partSize, quadrantsInY);
-
-                        for (int qwadY = start; qwadY < stop; qwadY++)
+                        if (quadrants[quadOnX, QwadYLine] != 0 || subQuadrants[quadOnX, QwadYLine] != 0)
                         {
-                            if (quadrants[qwadX, qwadY] != 0 || subQuadrants[qwadX, qwadY] != 0)
+                            for (int celXindex = 0; celXindex < 10; celXindex++)
                             {
-                                for (int celXindex = 0; celXindex < 10; celXindex++)
+                                for (int celYindex = 0; celYindex < 10; celYindex++)
                                 {
-                                    for (int celYindex = 0; celYindex < 10; celYindex++)
-                                    {
-                                        int x = (qwadX * 10) + celXindex;
-                                        int y = (qwadY * 10) + celYindex;
+                                    int x = (quadOnX * 10) + celXindex;
+                                    int y = (QwadYLine * 10) + celYindex;
 
-                                        if (oldCels[x, y] == 1)
-                                        {
-                                            if (Livingneighbors(x, y) == 2 || Livingneighbors(x, y) == 3) { newCels[x, y] = 1; }
-                                            if (Livingneighbors(x, y) > 4 || Livingneighbors(x, y) < 2) { newCels[x, y] = 0; }
-                                        }
-                                        else
-                                        {
-                                            if (Livingneighbors(x, y) == 3) { newCels[x, y] = 1; }
-                                        }
+                                    if (oldCels[x, y] == 1)
+                                    {
+                                        // make Cuda
+                                        newCels[x, y] = Livingneighbors(x, y) == 2 || Livingneighbors(x, y) == 3 ? 1 :newCels[x, y];
+                                        newCels[x, y] = Livingneighbors(x, y) > 4 || Livingneighbors(x, y) < 2 ? 0 : newCels[x, y];                                   
+                                    }
+                                    else
+                                    {
+                                        newCels[x, y] = Livingneighbors(x, y) == 3 ? 1 : newCels[x, y];
                                     }
                                 }
                             }
                         }
                     }
                 });
-            }
-            else
-            {
-                UpdateCels_NOQuadrants();
-            }
+
+            else  UpdateCels_NOQuadrants();
+            
           
         }
-
         private void UpdateCels_NOQuadrants()
         {
             for (int x = 0; x < maxCelsInX; x++)
@@ -186,12 +176,70 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
                 }
             }
         }
-        private void MouseDraw()
+
+
+
+        private void MarkSubQuadrants(int x, int y)
         {
+
+            subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y) + quadrantsInY) % quadrantsInY] = quadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y) + quadrantsInY) % quadrantsInY] != 0
+                ? subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y) + quadrantsInY) % quadrantsInY]
+                : subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y) + quadrantsInY) % quadrantsInY] += 1;
+
+            subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y) + quadrantsInY) % quadrantsInY] = quadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y) + quadrantsInY) % quadrantsInY] != 0
+                ? subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y) + quadrantsInY) % quadrantsInY]
+                : subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y) + quadrantsInY) % quadrantsInY] += 1;
+
+            subQuadrants[((x) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] = quadrants[((x) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] != 0
+                ? subQuadrants[((x) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY]
+                : subQuadrants[((x) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] += 1;
+
+            subQuadrants[((x) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] = quadrants[((x) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] != 0
+                ? subQuadrants[((x) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY]
+                : subQuadrants[((x) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] += 1;
+
+            subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] = quadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] != 0
+                ? subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] += 1
+                : subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] += 1;
+
+            subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] = quadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] != 0
+                ? subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY]
+                : subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] += 1;
+
+            subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] = quadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] != 0
+                ? subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY]
+                : subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] += 1;
+
+            subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] = quadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] != 0
+                ? subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY]
+                : subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] += 1;
+
+        }
+        private int Livingneighbors(int x, int y)
+        {
+            int tell = 0;
+
+            tell += oldCels[((x + 1) + maxCelsInX) % maxCelsInX, ((y) + maxCelsInY) % maxCelsInY];
+            tell += oldCels[((x - 1) + maxCelsInX) % maxCelsInX, ((y) + maxCelsInY) % maxCelsInY];
+            tell += oldCels[((x) + maxCelsInX) % maxCelsInX, ((y + 1) + maxCelsInY) % maxCelsInY];
+            tell += oldCels[((x) + maxCelsInX) % maxCelsInX, ((y - 1) + maxCelsInY) % maxCelsInY];
+            tell += oldCels[((x + 1) + maxCelsInX) % maxCelsInX, ((y + 1) + maxCelsInY) % maxCelsInY];
+            tell += oldCels[((x - 1) + maxCelsInX) % maxCelsInX, ((y - 1) + maxCelsInY) % maxCelsInY];
+            tell += oldCels[((x - 1) + maxCelsInX) % maxCelsInX, ((y + 1) + maxCelsInY) % maxCelsInY];
+            tell += oldCels[((x + 1) + maxCelsInX) % maxCelsInX, ((y - 1) + maxCelsInY) % maxCelsInY];
+
+            return tell;
+        }
+
+
+
+        private void MouseDraw()
+        {                    
+
             int mouseX = (int)Math.Ceiling(GetMousePosition().X - widthControlPannal);
             int mouseY = (int)Math.Ceiling(GetMousePosition().Y);
-            
-            if (cbSolidBrush.Checked)
+
+            if (brusType == "Circle")
             {
                 for (int qwadX = 0; qwadX < quadrantsInX; qwadX++)
                 {
@@ -211,20 +259,9 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
 
                                     float Distance = Vector2.Distance(celVecter, brushCenter);
 
-                                    if (brusType == "Circle")
-                                    {
-                                        if (Distance < lastBrushSize)
-                                            if (modeMesage == "Draw") newCels[x, y] = 1;
-                                            else newCels[x, y] = 0;
-                                    }
-                                    else
-                                    {
-                                        if ((x * celSize) >= (mouseX - lastBrushSize) && (x * celSize) <= (mouseX + lastBrushSize) && 
-                                            (y * celSize) >= (mouseY - lastBrushSize) && (y * celSize) <= (mouseY+ lastBrushSize))
 
-                                        if (modeMesage == "Draw") newCels[x, y] = 1;
-                                        else newCels[x, y] = 0;
-                                    }
+                                    if (Distance < lastBrushSize)
+                                    newCels[x, y] = modeMesage == "Draw" ? 1 : 0;
                                 }
                             }
                         }
@@ -233,202 +270,35 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
             }
             else
             {
-              
+                for (int qwadX = 0; qwadX < quadrantsInX; qwadX++)
+                {
+                    for (int qwadY = 0; qwadY < quadrantsInY; qwadY++)
+                    {
+                        if (mousQuadrants[qwadX, qwadY] != 0)
+                        {
+                            for (int celXindex = 0; celXindex < 10; celXindex++)
+                            {
+                                for (int celYindex = 0; celYindex < 10; celYindex++)
+                                {
+                                    int x = (qwadX * 10) + celXindex;
+                                    int y = (qwadY * 10) + celYindex;
+
+                                    if ((x * celSize) >= (mouseX - lastBrushSize) && (x * celSize) <= (mouseX + lastBrushSize) &&
+                                        (y * celSize) >= (mouseY - lastBrushSize) && (y * celSize) <= (mouseY + lastBrushSize))
+
+                                        newCels[x, y] = modeMesage == "Draw" ? 1 : 0;
+
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
-        private void CelControles(int x, int y)
-        {
-            CreateButton(ref btnPlayPauze, "Pauze", FlatStyle.System, new Rectangle(x + 20, y + 25, 78, 25), new btnAction(() => {
-                running = running == true ? false : true;
-                btnPlayPauze.Text = running == true ? "Pauze" : "Play";
-            }));
-            CreateButton("Clear", FlatStyle.System, new Rectangle(x + 104, y + 25, 76, 25), new btnAction(() => {
-
-                newCels = new int[maxCelsInX, maxCelsInY];
-                Clear();
-                staticCircleShapes.Clear();
-
-            }));
-            CreateColorDialog(ref cdgCelColor, "Cel inner", FlatStyle.System, new Rectangle(x + 20, y + 55, 130, 25), new colorPicker_Ok_Action(() => Refresh()));
-
-            CreateButton("1", FlatStyle.System, new Rectangle(x + 20, y + 115, 30, 25), new btnAction(() => {
-
-                Clear();
-                celSize = 1;
-                maxCelsInX = 1040 / celSize; // moet deelbaar door 10 zijn
-                maxCelsInY = 800 / celSize; // moet deelbaar door 10 zijn
-                quadrantsInX = maxCelsInX / 10;
-                quadrantsInY = maxCelsInY / 10;
-                newCels = new int[maxCelsInX, maxCelsInY];
-                Refresh();
-            }));
-            CreateButton("2", FlatStyle.System, new Rectangle(x + 61, y + 115, 30, 25), new btnAction(() => {
-
-                Clear();
-                celSize = 2;
-                maxCelsInX = 1040 / celSize; // moet deelbaar door 10 zijn
-                maxCelsInY = 800 / celSize; // moet deelbaar door 10 zijn
-                quadrantsInX = maxCelsInX / 10;
-                quadrantsInY = maxCelsInY / 10;
-                newCels = new int[maxCelsInX, maxCelsInY];
-                Refresh();
-            }));
-            CreateButton("4", FlatStyle.System, new Rectangle(x + 104, y + 115, 30, 25), new btnAction(() => {
-
-                Clear();
-                celSize = 4;
-                maxCelsInX = 1040 / celSize; // moet deelbaar door 10 zijn
-                maxCelsInY = 800 / celSize; // moet deelbaar door 10 zijn
-                quadrantsInX = maxCelsInX / 10;
-                quadrantsInY = maxCelsInY / 10;
-                newCels = new int[maxCelsInX, maxCelsInY];
-                Refresh();
-            }));
-            CreateButton("8", FlatStyle.System, new Rectangle(x + 145, y + 115, 30, 25), new btnAction(() => {
-
-                Clear();
-                celSize = 8;
-                maxCelsInX = 1040 / celSize; // moet deelbaar door 10 zijn
-                maxCelsInY = 800 / celSize; // moet deelbaar door 10 zijn
-                quadrantsInX = maxCelsInX / 10;
-                quadrantsInY = maxCelsInY / 10;
-                newCels = new int[maxCelsInX, maxCelsInY];
-                Refresh();
-            }));
 
 
-            ControleDraw += (object sender, PaintEventArgs e) => {
-                e.Graphics.DrawString("Cel Properties", new Font("", 10), Brushes.Red, x, y);
 
-                e.Graphics.FillRectangle(new SolidBrush(cdgCelColor.Color), new Rectangle(x + 155, y + 55, 23, 24));
-                e.Graphics.DrawRectangle(Pens.Black, new Rectangle(x + 155, y + 55, 23, 24));
-
-                e.Graphics.DrawString($"Cel size: {celSize}", new Font("", 10), Brushes.Black, x + 20, y + 90);
-
-            };
-        }
-        private void QuadrantsControles(int x, int y)
-        {
-            CreateCheckBox(ref cbQuadrantsUse, true, "Quadrant rendering", Appearance.Normal, new Rectangle(x +20, y + 25, 155, 25), null);           
-            CreateCheckBox(ref cbDrawQuadrants, false, "Draw Quadrant", Appearance.Normal, new Rectangle(x + 20, y + 50, 155, 25), null);
-            CreateCheckBox(ref cbDrawQuadrantsInfo, false, "Draw Quadrant info", Appearance.Normal, new Rectangle(x + 20, y + 75, 155, 25), null);
-
-            CreateColorDialog(ref cdgColorQuadrantBorder, "QuadrantBorder", FlatStyle.System, new Rectangle(x + 20, y + 105, 130, 25), new colorPicker_Ok_Action(() => Refresh()));
-            CreateColorDialog(ref cdgColorSubQuadrantBorder, "Sub quadrantBorder", FlatStyle.System, new Rectangle(x + 20, y + 135, 130, 25), new colorPicker_Ok_Action(() => Refresh()));
-
-            ControleDraw += (object sender, PaintEventArgs e) => {
-
-                e.Graphics.DrawString("Quadrant Properties", new Font("", 10), Brushes.Red, x, y);
-           
-                e.Graphics.FillRectangle(new SolidBrush(cdgColorQuadrantBorder.Color), new Rectangle(x + 155, y + 105, 23, 24));
-                e.Graphics.DrawRectangle(Pens.Black, new Rectangle(x + 155, y + 105, 23, 24));
-
-                e.Graphics.FillRectangle(new SolidBrush(cdgColorSubQuadrantBorder.Color), new Rectangle(x + 155, y + 135, 23, 24));
-                e.Graphics.DrawRectangle(Pens.Black, new Rectangle(x + 155, y + 135, 23, 24));
-            };
-        }
-        private void DrawCelControles(int x, int y)
-        {
-            
-            CreateComboBox(ref cmbPaterens, new Rectangle(x + 20, y + 25, 160, 25), Enum.GetValues(typeof(Paterens)));
-            CreateButton("Spawn", FlatStyle.System, new Rectangle(x + 20, y + 60, 50, 25), new btnAction(() => {
-
-                GlitterGun(rand.Next(0, maxCelsInX - 35), rand.Next(0, maxCelsInY - 23));
-                drawMesage = cmbPaterens.SelectedItem.ToString();
-                Refresh();
-            }));
-            CreateTextBox(ref txtbrushSize, new Point(x + 20, y + 120), 40, "" + StartBrushSize, 3, BorderStyle.Fixed3D, new TextChangedAction(() => Refresh()));
-            CreateButton("Draw", FlatStyle.System, new Rectangle(x + 70, y + 120, 50, 23), new btnAction(() => {
-                modeMesage = "Draw";
-                Refresh();
-            }));
-            CreateButton("Erase", FlatStyle.System, new Rectangle(x + 130, y + 120, 50, 23), new btnAction(() => {
-                modeMesage = "Erase";
-                Refresh();
-            CreateButton("Erase", FlatStyle.System, new Rectangle(x + 130, y + 120, 50, 23), new btnAction(() => {
-                modeMesage = "Erase";
-                Refresh();
-            }));
-            }));
-
-            CreateButton("[]", FlatStyle.System, new Rectangle(x + 130, y + 150, 50, 47), new btnAction(() => {
-                brusType = "Rect";
-                Refresh();
-            }));
-            CreateButton("O", FlatStyle.System, new Rectangle(x + 130, y + 203, 50, 47), new btnAction(() => {
-                brusType = "Circle";
-                Refresh();
-            }));
-
-
-            CreateCheckBox(ref cbSolidBrush, true, "Solid brush", Appearance.Normal, new Rectangle(x + 20, y + 260, 155, 25), new CheckedChangedAction(() => Refresh()));
-
-            ControleDraw += (object sender, PaintEventArgs e) => {
-                e.Graphics.DrawString("Draw / Spawn Options ", new Font("", 10), Brushes.Red, x, y);
-                e.Graphics.DrawString($"{drawMesage}", new Font("", 10), Brushes.Black, x + 80, y + 65);
-                e.Graphics.DrawString($"Mode: {modeMesage} S: {txtbrushSize.Text} Sh: {brusType}", new Font("", 10), Brushes.Green, x + 20, y + 95);
-
-                e.Graphics.FillRectangle(Brushes.White, new Rectangle(x + 20, y + 150, 99, 99));
-                e.Graphics.DrawRectangle(Pens.Black, new Rectangle(x + 20, y + 150, 99, 99));               
-
-               
-
-                Vector2 centerPoint = new Vector2().Intersection_LineToLine(new Vector2(x + 69, y + 150),new Vector2(x + 69, y + 249),new Vector2(x + 20, y + 199),new Vector2(x + 119, y + 199));
-
-                if (brusType == "Circle")
-                {
-                    if (cbSolidBrush.Checked)
-                    {
-                        e.Graphics.FillEllipse(Brushes.Green,
-                           centerPoint.X - (lastBrushSize / 4),
-                           centerPoint.Y - (lastBrushSize / 4),
-                           lastBrushSize / 2,
-                           lastBrushSize / 2);
-                    }
-                    e.Graphics.DrawEllipse(Pens.Black, 
-                        centerPoint.X - (lastBrushSize / 4), 
-                        centerPoint.Y - (lastBrushSize / 4), 
-                        lastBrushSize / 2, 
-                        lastBrushSize / 2);
-
-                }
-                else
-                {
-                    if (cbSolidBrush.Checked)
-                    {
-                        e.Graphics.FillRectangle(Brushes.Green,
-                           centerPoint.X - (lastBrushSize / 4),
-                           centerPoint.Y - (lastBrushSize / 4),
-                           lastBrushSize / 2,
-                           lastBrushSize / 2);
-                    }
-                    e.Graphics.DrawRectangle(Pens.Black,
-                        centerPoint.X - (lastBrushSize / 4),
-                        centerPoint.Y - (lastBrushSize / 4),
-                        lastBrushSize / 2,
-                        lastBrushSize / 2);
-                }
-
-                e.Graphics.DrawLine(Pens.Black, new Point(x + 70, y + 150), new Point(x + 70, y + 249));
-                e.Graphics.DrawLine(Pens.Black, new Point(x + 20, y + 200), new Point(x + 119, y + 200));
-            };
-        }
-        private void SolidAndPulsersControles(int x, int y)
-        {
-            ControleDraw += (object sender, PaintEventArgs e) =>  e.Graphics.DrawString("Shapes (WIP) ", new Font("", 10), Brushes.Red, x, y);
-
-            CreateButton("Static circle", FlatStyle.System, new Rectangle(x + 20, y + 25, 78, 25), new btnAction(() => {
-                
-                staticCircleShapes.Add(new CircleShape(GetPointFromPoint(new Vector2((GameObjects.LoopContainer.Width / 2), (GameObjects.LoopContainer.Height / 2)),100, angelTikker), 25));
-                staticCircleShapes.Add(new CircleShape(GetPointFromPoint(GetPointFromPoint(new Vector2((GameObjects.LoopContainer.Width / 2), (GameObjects.LoopContainer.Height / 2)),10,5), 100, angelTikker), 15));
-                staticCircleShapes.Add(new CircleShape((GameObjects.LoopContainer.Width / 2), (GameObjects.LoopContainer.Height / 2), 51));
-            }));
-
-
-            CreateButton("Static circle", FlatStyle.System, new Rectangle(x + 104, y + 25, 76, 25), new btnAction(() => {}));
-            CreateButton("Puls rect", FlatStyle.System, new Rectangle(x + 20, y + 55, 78, 25), new btnAction(() => {}));
-            CreateButton("Puls circle", FlatStyle.System, new Rectangle(x + 104, y + 55, 76, 25), new btnAction(() => {}));
-        }
+ 
         private void DrawLoop(object sender, PaintEventArgs e)
         {
             Clear();
@@ -439,19 +309,6 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
             ShapeDraw();
 
             DrawScene(e);
-
-            if (staticCircleShapes.Count != 0)
-            {
-
-                staticCircleShapes.ToArray()[0].Center = GetPointFromPoint(GetPointFromPoint(new Vector2((GameObjects.LoopContainer.Width / 2), (GameObjects.LoopContainer.Height / 2)), 200, -angelTikker * 3), 200, angelTikker);
-                staticCircleShapes.ToArray()[1].Center = GetPointFromPoint(new Vector2((GameObjects.LoopContainer.Width / 2), (GameObjects.LoopContainer.Height / 2)), 200, angelTikker);
-            
-            }
-
-           angelTikker.AddValuePerSec(45);
-           
-            //angelTikker += 0.9f;
-
         }
         private void ShapeDraw()
         {
@@ -494,12 +351,8 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
             for (int x = 0; x < maxCelsInX; x++)
                 for (int y = 0; y < maxCelsInY; y++)
                     if (newCels[x, y] == 1)
-                    {
-                        if(celSize > 2)                         
-                                celDraw.Add(new Rectangle(x * celSize, y * celSize, celSize - 1, celSize - 1));                      
-                        else
-                            celDraw.Add(new Rectangle(x * celSize, y * celSize, celSize, celSize));
-
+                    {                     
+                        celDraw.Add(new Rectangle(x * celSize, y * celSize, celSize, celSize));
                         quadrants[x / 10, y / 10]++;
                     }
 
@@ -583,47 +436,39 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
         {
             if(cbDrawQuadrants.Checked)
             DrawQuadrants(e);
+                       
+            e.Graphics.DrawRectangles(new Pen(cdgColorSubQuadrantBorder.Color, 1), supQaudDraw.Count != 0 && cbQuadrantsUse.Checked
+                ? supQaudDraw.ToArray()
+                : new Rectangle[] { Rectangle.Empty });
 
+            e.Graphics.DrawRectangles(new Pen(cdgColorQuadrantBorder.Color, 1), quadDraw.Count != 0 && cbQuadrantsUse.Checked
+                ? quadDraw.ToArray()
+                : new Rectangle[] { Rectangle.Empty });
+
+            e.Graphics.FillRectangles(new SolidBrush(cdgColorMousQuadrantBorder.Color), mousQuadDraw.Count != 0 && cbQuadrantsUse.Checked
+                ? mousQuadDraw.ToArray()
+                : new Rectangle[] { Rectangle.Empty });
+
+            e.Graphics.DrawRectangles(new Pen(cdgColorShapeQuadrantBorder.Color, 1), circleShapeQuadDraw.Count != 0 && cbQuadrantsUse.Checked
+                ? circleShapeQuadDraw.ToArray()
+                : new Rectangle[] { Rectangle.Empty });
             
-            if (cbQuadrantsUse.Checked)
-            { 
-                if (quadDraw.Count != 0)
-                {
-                    e.Graphics.DrawRectangles(new Pen(cdgColorSubQuadrantBorder.Color, 1), supQaudDraw.ToArray());
-                    e.Graphics.DrawRectangles(new Pen(cdgColorQuadrantBorder.Color, 1), quadDraw.ToArray());
-                }
-
-                if (mousQuadDraw.Count != 0)
-                    e.Graphics.FillRectangles(new SolidBrush(cdgColorMousQuadrantBorder.Color), mousQuadDraw.ToArray());
-
-                if (circleShapeQuadDraw.Count != 0)
-                    e.Graphics.DrawRectangles(new Pen(cdgColorShapeQuadrantBorder.Color, 1), circleShapeQuadDraw.ToArray());
-            }
-
-          
-            if (celDraw.Count != 0 && cdgCelColor.Color != Color.Black)
-                e.Graphics.FillRectangles(new SolidBrush(cdgCelColor.Color), celDraw.ToArray());              
+            e.Graphics.FillRectangles(new SolidBrush(cdgCelColor.Color), celDraw.Count != 0
+                  ? celDraw.ToArray()
+                  : new Rectangle[] { Rectangle.Empty });
+       
+            // brush sape on screen            
+            e.Graphics.DrawEllipse(new Pen(Color.FromArgb(100, 255, 0, 0), 2),
+                brusType == "Circle"
+                ? new Rectangle(new Point((int)GetMousePosition().X - (widthControlPannal + lastBrushSize),(int)GetMousePosition().Y - lastBrushSize),new Size(lastBrushSize * 2, lastBrushSize * 2))
+                : Rectangle.Empty );
             
-
-            // brush sape on screen
-            if (brusType == "Circle")
-            {
-                e.Graphics.DrawEllipse(new Pen(Color.FromArgb(100, 255, 0, 0), 2),
-                new Rectangle(
-                    new Point(
-                        (int)GetMousePosition().X - (widthControlPannal + lastBrushSize),
-                        (int)GetMousePosition().Y - lastBrushSize),
-                    new Size(lastBrushSize * 2, lastBrushSize * 2)));
-            }
-            else
-            {
-                e.Graphics.DrawRectangle(new Pen(Color.FromArgb(100, 255, 0, 0), 2),
-                new Rectangle(
-                    new Point(
-                        (int)GetMousePosition().X - (widthControlPannal + lastBrushSize),
-                        (int)GetMousePosition().Y - lastBrushSize),
-                    new Size(lastBrushSize * 2, lastBrushSize * 2)));
-            }
+            e.Graphics.DrawRectangle(new Pen(Color.FromArgb(100, 255, 0, 0), 2),
+                brusType != "Circle"
+                ? new Rectangle(new Point((int)GetMousePosition().X - (widthControlPannal + lastBrushSize),(int)GetMousePosition().Y - lastBrushSize),new Size(lastBrushSize * 2, lastBrushSize * 2))
+                : Rectangle.Empty
+                );
+            
         }
         public void BrushResizer(object sender, MouseEventArgs e)
         {
@@ -650,76 +495,223 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
             for (int x = 0; x < quadrantsInX; x++)
                 for (int y = 0; y < quadrantsInY; y++)
                 {
-                    if (quadrants[x, y] != 0)
+                    quadDraw.Add(quadrants[x, y] != 0
+                        ? new Rectangle(x * (10 * celSize), y * (10 * celSize), (10 * celSize), (10 * celSize))
+                        : Rectangle.Empty);
+
+                    supQaudDraw.Add(subQuadrants[x, y] != 0
+                       ? new Rectangle(x * (10 * celSize), y * (10 * celSize), (10 * celSize), (10 * celSize))
+                       : Rectangle.Empty);
+
+                    mousQuadDraw.Add(mousQuadrants[x, y] != 0
+                       ? new Rectangle(x * (10 * celSize), y * (10 * celSize), (10 * celSize), (10 * celSize))
+                       : Rectangle.Empty);
+
+                    circleShapeQuadDraw.Add(circleShapeQuats[x, y] != 0
+                       ? new Rectangle(x * (10 * celSize), y * (10 * celSize), (10 * celSize), (10 * celSize))
+                       : Rectangle.Empty);
+
+                    if (cbDrawQuadrantsInfo.Checked)
                     { 
-                        quadDraw.Add(new Rectangle(x * (10 * celSize), y * (10 * celSize), (10 * celSize), (10 * celSize)));
-                        if (cbDrawQuadrantsInfo.Checked) e.Graphics.DrawString($"{quadrants[x, y]}", new Font("", celSize * 3), Brushes.White, x * (10 * celSize) + 2, y * (10 * celSize) + 2);
+                        if (quadrants[x, y] != 0) e.Graphics.DrawString($"{quadrants[x, y]}", new Font("", celSize * 3), Brushes.White, x * (10 * celSize) + 2, y * (10 * celSize) + 2);
+                        if (subQuadrants[x, y] != 0) e.Graphics.DrawString($"\n{subQuadrants[x, y]}", new Font("", celSize * 3), Brushes.White, x * (10 * celSize) + 2, y * (10 * celSize)+2);
                     }
 
-                    if (subQuadrants[x, y] != 0)
-                    { 
-                        supQaudDraw.Add(new Rectangle(x * (10 * celSize), y * (10 * celSize), (10 * celSize), (10 * celSize)));
-                        if (cbDrawQuadrantsInfo.Checked) e.Graphics.DrawString($"\n{subQuadrants[x, y]}", new Font("", celSize * 3), Brushes.White, x * (10 * celSize) + 2, y * (10 * celSize)+2);
+                }
+        }
+
+
+        private void CelControles(int x, int y)
+        {
+            CreateButton(ref btnPlayPauze, "Pauze", FlatStyle.System, new Rectangle(x + 20, y + 25, 78, 25), new btnAction(() => {
+                running = running == true ? false : true;
+                btnPlayPauze.Text = running == true ? "Pauze" : "Play";
+            }));
+            CreateButton("Clear", FlatStyle.System, new Rectangle(x + 104, y + 25, 76, 25), new btnAction(() => {
+
+                newCels = new int[maxCelsInX, maxCelsInY];
+                Clear();
+                staticCircleShapes.Clear();
+
+            }));
+            CreateColorDialog(ref cdgCelColor, "Cel inner", FlatStyle.System, new Rectangle(x + 20, y + 55, 130, 25), new colorPicker_Ok_Action(() => Refresh()));
+
+            CreateButton("1", FlatStyle.System, new Rectangle(x + 20, y + 115, 30, 25), new btnAction(() => {
+
+                Clear();
+                celSize = 1;
+                maxCelsInX = 1040 / celSize; // moet deelbaar door 10 zijn
+                maxCelsInY = 800 / celSize; // moet deelbaar door 10 zijn
+                quadrantsInX = maxCelsInX / 10;
+                quadrantsInY = maxCelsInY / 10;
+                newCels = new int[maxCelsInX, maxCelsInY];
+                Refresh();
+            }));
+            CreateButton("2", FlatStyle.System, new Rectangle(x + 61, y + 115, 30, 25), new btnAction(() => {
+
+                Clear();
+                celSize = 2;
+                maxCelsInX = 1040 / celSize; // moet deelbaar door 10 zijn
+                maxCelsInY = 800 / celSize; // moet deelbaar door 10 zijn
+                quadrantsInX = maxCelsInX / 10;
+                quadrantsInY = maxCelsInY / 10;
+                newCels = new int[maxCelsInX, maxCelsInY];
+                Refresh();
+            }));
+            CreateButton("4", FlatStyle.System, new Rectangle(x + 104, y + 115, 30, 25), new btnAction(() => {
+
+                Clear();
+                celSize = 4;
+                maxCelsInX = 1040 / celSize; // moet deelbaar door 10 zijn
+                maxCelsInY = 800 / celSize; // moet deelbaar door 10 zijn
+                quadrantsInX = maxCelsInX / 10;
+                quadrantsInY = maxCelsInY / 10;
+                newCels = new int[maxCelsInX, maxCelsInY];
+                Refresh();
+            }));
+            CreateButton("8", FlatStyle.System, new Rectangle(x + 145, y + 115, 30, 25), new btnAction(() => {
+
+                Clear();
+                celSize = 8;
+                maxCelsInX = 1040 / celSize; // moet deelbaar door 10 zijn
+                maxCelsInY = 800 / celSize; // moet deelbaar door 10 zijn
+                quadrantsInX = maxCelsInX / 10;
+                quadrantsInY = maxCelsInY / 10;
+                newCels = new int[maxCelsInX, maxCelsInY];
+                Refresh();
+            }));
+
+
+            ControleDraw += (object sender, PaintEventArgs e) => {
+                e.Graphics.DrawString("Cel Properties", new Font("", 10), Brushes.Red, x, y);
+
+                e.Graphics.FillRectangle(new SolidBrush(cdgCelColor.Color), new Rectangle(x + 155, y + 55, 23, 24));
+                e.Graphics.DrawRectangle(Pens.Black, new Rectangle(x + 155, y + 55, 23, 24));
+
+                e.Graphics.DrawString($"Cel size: {celSize}", new Font("", 10), Brushes.Black, x + 20, y + 90);
+
+            };
+        }
+        private void QuadrantsControles(int x, int y)
+        {
+            CreateCheckBox(ref cbQuadrantsUse, true, "Quadrant rendering", Appearance.Normal, new Rectangle(x + 20, y + 25, 155, 25), null);
+            CreateCheckBox(ref cbDrawQuadrants, false, "Draw Quadrant", Appearance.Normal, new Rectangle(x + 20, y + 50, 155, 25), null);
+            CreateCheckBox(ref cbDrawQuadrantsInfo, false, "Draw Quadrant info", Appearance.Normal, new Rectangle(x + 20, y + 75, 155, 25), null);
+
+            CreateColorDialog(ref cdgColorQuadrantBorder, "QuadrantBorder", FlatStyle.System, new Rectangle(x + 20, y + 105, 130, 25), new colorPicker_Ok_Action(() => Refresh()));
+            CreateColorDialog(ref cdgColorSubQuadrantBorder, "Sub quadrantBorder", FlatStyle.System, new Rectangle(x + 20, y + 135, 130, 25), new colorPicker_Ok_Action(() => Refresh()));
+
+            ControleDraw += (object sender, PaintEventArgs e) => {
+
+                e.Graphics.DrawString("Quadrant Properties", new Font("", 10), Brushes.Red, x, y);
+
+                e.Graphics.FillRectangle(new SolidBrush(cdgColorQuadrantBorder.Color), new Rectangle(x + 155, y + 105, 23, 24));
+                e.Graphics.DrawRectangle(Pens.Black, new Rectangle(x + 155, y + 105, 23, 24));
+
+                e.Graphics.FillRectangle(new SolidBrush(cdgColorSubQuadrantBorder.Color), new Rectangle(x + 155, y + 135, 23, 24));
+                e.Graphics.DrawRectangle(Pens.Black, new Rectangle(x + 155, y + 135, 23, 24));
+            };
+        }
+        private void DrawCelControles(int x, int y)
+        {
+
+            CreateComboBox(ref cmbPaterens, new Rectangle(x + 20, y + 25, 160, 25), Enum.GetValues(typeof(Paterens)));
+            CreateButton("Spawn", FlatStyle.System, new Rectangle(x + 20, y + 60, 50, 25), new btnAction(() => {
+
+                GlitterGun(rand.Next(0, maxCelsInX - 35), rand.Next(0, maxCelsInY - 23));
+                drawMesage = cmbPaterens.SelectedItem.ToString();
+                Refresh();
+            }));
+            CreateTextBox(ref txtbrushSize, new Point(x + 20, y + 120), 40, "" + StartBrushSize, 3, BorderStyle.Fixed3D, new TextChangedAction(() => Refresh()));
+            CreateButton("Draw", FlatStyle.System, new Rectangle(x + 70, y + 120, 50, 23), new btnAction(() => {
+                modeMesage = "Draw";
+                Refresh();
+            }));
+            CreateButton("Erase", FlatStyle.System, new Rectangle(x + 130, y + 120, 50, 23), new btnAction(() => {
+                modeMesage = "Erase";
+                Refresh();
+                CreateButton("Erase", FlatStyle.System, new Rectangle(x + 130, y + 120, 50, 23), new btnAction(() => {
+                    modeMesage = "Erase";
+                    Refresh();
+                }));
+            }));
+
+            CreateButton("[]", FlatStyle.System, new Rectangle(x + 130, y + 150, 50, 47), new btnAction(() => {
+                brusType = "Rect";
+                Refresh();
+            }));
+            CreateButton("O", FlatStyle.System, new Rectangle(x + 130, y + 203, 50, 47), new btnAction(() => {
+                brusType = "Circle";
+                Refresh();
+            }));
+
+
+            CreateCheckBox(ref cbSolidBrush, true, "Solid brush", Appearance.Normal, new Rectangle(x + 20, y + 260, 155, 25), new CheckedChangedAction(() => Refresh()));
+
+            ControleDraw += (object sender, PaintEventArgs e) => {
+                e.Graphics.DrawString("Draw / Spawn Options ", new Font("", 10), Brushes.Red, x, y);
+                e.Graphics.DrawString($"{drawMesage}", new Font("", 10), Brushes.Black, x + 80, y + 65);
+                e.Graphics.DrawString($"Mode: {modeMesage} S: {txtbrushSize.Text} Sh: {brusType}", new Font("", 10), Brushes.Green, x + 20, y + 95);
+
+                e.Graphics.FillRectangle(Brushes.White, new Rectangle(x + 20, y + 150, 99, 99));
+                e.Graphics.DrawRectangle(Pens.Black, new Rectangle(x + 20, y + 150, 99, 99));
+
+
+
+                Vector2 centerPoint = new Vector2().Intersection_LineToLine(new Vector2(x + 69, y + 150), new Vector2(x + 69, y + 249), new Vector2(x + 20, y + 199), new Vector2(x + 119, y + 199));
+
+                if (brusType == "Circle")
+                {
+                    if (cbSolidBrush.Checked)
+                    {
+                        e.Graphics.FillEllipse(Brushes.Green,
+                           centerPoint.X - (lastBrushSize / 4),
+                           centerPoint.Y - (lastBrushSize / 4),
+                           lastBrushSize / 2,
+                           lastBrushSize / 2);
                     }
+                    e.Graphics.DrawEllipse(Pens.Black,
+                        centerPoint.X - (lastBrushSize / 4),
+                        centerPoint.Y - (lastBrushSize / 4),
+                        lastBrushSize / 2,
+                        lastBrushSize / 2);
 
-                    if (mousQuadrants[x, y] != 0)
-                        mousQuadDraw.Add(new Rectangle(x * (10 * celSize), y * (10 * celSize), (10 * celSize), (10 * celSize)));
-
-                    if (circleShapeQuats[x, y] != 0)
-                        circleShapeQuadDraw.Add(new Rectangle(x * (10 * celSize), y * (10 * celSize), (10 * celSize), (10 * celSize)));
+                }
+                else
+                {
+                    if (cbSolidBrush.Checked)
+                    {
+                        e.Graphics.FillRectangle(Brushes.Green,
+                           centerPoint.X - (lastBrushSize / 4),
+                           centerPoint.Y - (lastBrushSize / 4),
+                           lastBrushSize / 2,
+                           lastBrushSize / 2);
+                    }
+                    e.Graphics.DrawRectangle(Pens.Black,
+                        centerPoint.X - (lastBrushSize / 4),
+                        centerPoint.Y - (lastBrushSize / 4),
+                        lastBrushSize / 2,
+                        lastBrushSize / 2);
                 }
 
-        }      
-        private void MarkSubQuadrants(int x, int y)
-        {            
-            
-                subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y) + quadrantsInY) % quadrantsInY] = quadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y) + quadrantsInY) % quadrantsInY] != 0
-                    ? subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y) + quadrantsInY) % quadrantsInY]
-                    : subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y) + quadrantsInY) % quadrantsInY] += 1;
-
-                subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y) + quadrantsInY) % quadrantsInY] = quadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y) + quadrantsInY) % quadrantsInY] != 0
-                    ? subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y) + quadrantsInY) % quadrantsInY]
-                    : subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y) + quadrantsInY) % quadrantsInY] += 1;
-
-                subQuadrants[((x) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] = quadrants[((x) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] != 0
-                    ? subQuadrants[((x) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY]
-                    : subQuadrants[((x) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] += 1;
-
-                subQuadrants[((x) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] = quadrants[((x) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] != 0
-                    ? subQuadrants[((x) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY]
-                    : subQuadrants[((x) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] += 1;
-
-                subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] = quadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] != 0
-                    ? subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] += 1
-                    : subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] += 1;
-
-                subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] = quadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] != 0
-                    ? subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY]
-                    : subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] += 1;
-
-                subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] = quadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] != 0
-                    ? subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY]
-                    : subQuadrants[((x - 1) + quadrantsInX) % quadrantsInX, ((y + 1) + quadrantsInY) % quadrantsInY] += 1;
-
-                subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] = quadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] != 0
-                    ? subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY]
-                    : subQuadrants[((x + 1) + quadrantsInX) % quadrantsInX, ((y - 1) + quadrantsInY) % quadrantsInY] += 1;
-                           
+                e.Graphics.DrawLine(Pens.Black, new Point(x + 70, y + 150), new Point(x + 70, y + 249));
+                e.Graphics.DrawLine(Pens.Black, new Point(x + 20, y + 200), new Point(x + 119, y + 200));
+            };
         }
-        private int Livingneighbors(int x, int y)
+        private void SolidAndPulsersControles(int x, int y)
         {
-            int tell = 0;
+            ControleDraw += (object sender, PaintEventArgs e) => e.Graphics.DrawString("Shapes (WIP) ", new Font("", 10), Brushes.Red, x, y);
 
-            tell += oldCels[((x + 1) + maxCelsInX) % maxCelsInX, ((y) + maxCelsInY) % maxCelsInY] == 1 ? 1 : 0;
-            tell += oldCels[((x - 1) + maxCelsInX) % maxCelsInX, ((y) + maxCelsInY) % maxCelsInY] == 1 ? 1 : 0;
-            tell += oldCels[((x) + maxCelsInX) % maxCelsInX, ((y + 1) + maxCelsInY) % maxCelsInY] == 1 ? 1 : 0;
-            tell += oldCels[((x) + maxCelsInX) % maxCelsInX, ((y - 1) + maxCelsInY) % maxCelsInY] == 1 ? 1 : 0;
-            tell += oldCels[((x + 1) + maxCelsInX) % maxCelsInX, ((y + 1) + maxCelsInY) % maxCelsInY] == 1 ? 1 : 0;
-            tell += oldCels[((x - 1) + maxCelsInX) % maxCelsInX, ((y - 1) + maxCelsInY) % maxCelsInY] == 1 ? 1 : 0;
-            tell += oldCels[((x - 1) + maxCelsInX) % maxCelsInX, ((y + 1) + maxCelsInY) % maxCelsInY] == 1 ? 1 : 0;
-            tell += oldCels[((x + 1) + maxCelsInX) % maxCelsInX, ((y - 1) + maxCelsInY) % maxCelsInY] == 1 ? 1 : 0;
-            
-            return tell;
+            CreateButton("Static circle", FlatStyle.System, new Rectangle(x + 20, y + 25, 78, 25), new btnAction(() => {
+
+
+
+            }));
+
+
+            CreateButton("Static circle", FlatStyle.System, new Rectangle(x + 104, y + 25, 76, 25), new btnAction(() => { }));
+            CreateButton("Puls rect", FlatStyle.System, new Rectangle(x + 20, y + 55, 78, 25), new btnAction(() => { }));
+            CreateButton("Puls circle", FlatStyle.System, new Rectangle(x + 104, y + 55, 76, 25), new btnAction(() => { }));
         }
         private void GlitterGun(int x, int y)
         {
@@ -773,10 +765,6 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
             celDraw.Clear();
             circleShapeQuadDraw.Clear();
         }
-
-
-
-
     }
 
 
