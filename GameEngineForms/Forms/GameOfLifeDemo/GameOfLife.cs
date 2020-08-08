@@ -60,7 +60,7 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
         int[,] oldCels, newCels, mousQuadrants, quadrants, subQuadrants, circleShapeQuats;
         int celSize, maxCelsInX, maxCelsInY, quadrantsInX, quadrantsInY,
             widthControlPannal, maxBrushSize, lastBrushSize, StartBrushSize,
-            brushAcc, maxParallelIterations;
+            brushAcc, celCanvasHeight, celCanvasWidth;
 
         bool running = true,
              drawing = false;
@@ -69,13 +69,18 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
                modeMesage = "Draw",
                brusType = "Rect";
 
+        float rTeller;
+
+
         #endregion
         public GameOfLife() => Initialize += () =>
         {
             celSize = 2;
-            maxParallelIterations = 10;
-            maxCelsInX = 1040 / celSize; // moet deelbaar door 10 zijn
-            maxCelsInY = 800 / celSize; // moet deelbaar door 10 zijn
+            celCanvasWidth = 950;// moet deelbaar door 10 zijn
+            celCanvasHeight = 800;// moet deelbaar door 10 zijn
+
+            maxCelsInX = celCanvasWidth / celSize;
+            maxCelsInY = celCanvasHeight / celSize; 
             quadrantsInX = maxCelsInX / 10;
             quadrantsInY = maxCelsInY / 10;
             widthControlPannal = 210;
@@ -309,6 +314,10 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
             ShapeDraw();
 
             DrawScene(e);
+
+            rTeller++;
+            if(staticCircleShapes.Count > 0)
+            staticCircleShapes[0].Center = GetPointFromPoint(new Vector2((Width - widthControlPannal) / 2, Height / 2), 350, rTeller);
         }
         private void ShapeDraw()
         {
@@ -540,8 +549,8 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
 
                 Clear();
                 celSize = 1;
-                maxCelsInX = 1040 / celSize; // moet deelbaar door 10 zijn
-                maxCelsInY = 800 / celSize; // moet deelbaar door 10 zijn
+                maxCelsInX = celCanvasWidth / celSize;
+                maxCelsInY = celCanvasHeight / celSize;
                 quadrantsInX = maxCelsInX / 10;
                 quadrantsInY = maxCelsInY / 10;
                 newCels = new int[maxCelsInX, maxCelsInY];
@@ -551,8 +560,8 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
 
                 Clear();
                 celSize = 2;
-                maxCelsInX = 1040 / celSize; // moet deelbaar door 10 zijn
-                maxCelsInY = 800 / celSize; // moet deelbaar door 10 zijn
+                maxCelsInX = celCanvasWidth / celSize;
+                maxCelsInY = celCanvasHeight / celSize;
                 quadrantsInX = maxCelsInX / 10;
                 quadrantsInY = maxCelsInY / 10;
                 newCels = new int[maxCelsInX, maxCelsInY];
@@ -562,8 +571,8 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
 
                 Clear();
                 celSize = 4;
-                maxCelsInX = 1040 / celSize; // moet deelbaar door 10 zijn
-                maxCelsInY = 800 / celSize; // moet deelbaar door 10 zijn
+                maxCelsInX = celCanvasWidth / celSize;
+                maxCelsInY = celCanvasHeight / celSize;
                 quadrantsInX = maxCelsInX / 10;
                 quadrantsInY = maxCelsInY / 10;
                 newCels = new int[maxCelsInX, maxCelsInY];
@@ -573,8 +582,8 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
 
                 Clear();
                 celSize = 8;
-                maxCelsInX = 1040 / celSize; // moet deelbaar door 10 zijn
-                maxCelsInY = 800 / celSize; // moet deelbaar door 10 zijn
+                maxCelsInX = celCanvasWidth / celSize;
+                maxCelsInY = celCanvasHeight / celSize;
                 quadrantsInX = maxCelsInX / 10;
                 quadrantsInY = maxCelsInY / 10;
                 newCels = new int[maxCelsInX, maxCelsInY];
@@ -704,7 +713,11 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
 
             CreateButton("Static circle", FlatStyle.System, new Rectangle(x + 20, y + 25, 78, 25), new btnAction(() => {
 
+                Vector2 screenCenter = new Vector2((Width - widthControlPannal) / 2, Height / 2);
+                rTeller = 0;
 
+                staticCircleShapes.Add(new CircleShape(GetPointFromPoint(screenCenter,350, rTeller),celSize));
+                staticCircleShapes.Add(new CircleShape(screenCenter, 50));
 
             }));
 
