@@ -34,7 +34,7 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
             HWSS
         };
 
-        CheckBox cbQuadrantsUse, cbDrawQuadrants, cbDrawQuadrantsInfo, cbSolidBrush;
+        CheckBox cbQuadrantsUse, cbDrawQuadrants, cbSolidBrush;
         ComboBox cmbPaterens;
         TextBox txtbrushSize;
         Button btnPlayPauze;
@@ -69,14 +69,12 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
                modeMesage = "Draw",
                brusType = "Rect";
 
-        float rTeller;
-
 
         #endregion
         public GameOfLife() => Initialize += () =>
         {
             celSize = 2;
-            celCanvasWidth = 950;// moet deelbaar door 10 zijn
+            celCanvasWidth = 1280;// moet deelbaar door 10 zijn
             celCanvasHeight = 800;// moet deelbaar door 10 zijn
 
             maxCelsInX = celCanvasWidth / celSize;
@@ -136,7 +134,7 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
 
             if (cbQuadrantsUse.Checked)
            
-                Parallel.For(0, quadrantsInY, new ParallelOptions() { MaxDegreeOfParallelism = Environment.ProcessorCount }, QwadYLine =>
+                Parallel.For(0, quadrantsInY, new ParallelOptions() { MaxDegreeOfParallelism = Environment.ProcessorCount}, QwadYLine =>
                 {
                     for (int quadOnX = 0; quadOnX < quadrantsInX; quadOnX++)
                     {
@@ -236,8 +234,6 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
             return tell;
         }
 
-
-
         private void MouseDraw()
         {                    
 
@@ -300,24 +296,18 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
                 }
             }
         }
-
-
-
  
         private void DrawLoop(object sender, PaintEventArgs e)
         {
             Clear();
             MakeCelsAndQuadrants();                          
             if(running) UpdateCels(); 
-
-            if (drawing) MouseDraw();
-            ShapeDraw();
-
             DrawScene(e);
+            if (drawing) MouseDraw();
 
-            rTeller++;
-            if(staticCircleShapes.Count > 0)
-            staticCircleShapes[0].Center = GetPointFromPoint(new Vector2((Width - widthControlPannal) / 2, Height / 2), 350, rTeller);
+            // ShapeDraw();
+
+
         }
         private void ShapeDraw()
         {
@@ -326,7 +316,6 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
 
             Parallel.ForEach(staticCircleShapes, shape =>
             {
-
                 for (int qwadX = 0; qwadX < quadrantsInX; qwadX++)
                 {
                     for (int qwadY = 0; qwadY < quadrantsInY; qwadY++)
@@ -373,7 +362,6 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
 
             MakeMouseQuadrants();
             MakeShapeQuadrants();
-
 
             GameObjects.ObjectCount = celDraw.Count;
         }
@@ -443,41 +431,32 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
         }
         private void DrawScene(PaintEventArgs e)
         {
-            if(cbDrawQuadrants.Checked)
-            DrawQuadrants(e);
-                       
-            e.Graphics.DrawRectangles(new Pen(cdgColorSubQuadrantBorder.Color, 1), supQaudDraw.Count != 0 && cbQuadrantsUse.Checked
-                ? supQaudDraw.ToArray()
-                : new Rectangle[] { Rectangle.Empty });
+            CreateRectDrawQuadrants();
+            Rectangle[] defaultRectArry = new Rectangle[] { Rectangle.Empty };
+            
+            if (cbDrawQuadrants.Checked)
+            {    
+                e.Graphics.FillRectangles(new SolidBrush(cdgColorSubQuadrantBorder.Color), supQaudDraw.Count != 0 && cbQuadrantsUse.Checked
+                    ? supQaudDraw.ToArray()
+                    : defaultRectArry);
 
-            e.Graphics.DrawRectangles(new Pen(cdgColorQuadrantBorder.Color, 1), quadDraw.Count != 0 && cbQuadrantsUse.Checked
-                ? quadDraw.ToArray()
-                : new Rectangle[] { Rectangle.Empty });
+                e.Graphics.FillRectangles(new SolidBrush(cdgColorQuadrantBorder.Color), quadDraw.Count != 0 && cbQuadrantsUse.Checked
+                    ? quadDraw.ToArray()
+                    : defaultRectArry);
+           
+                e.Graphics.FillRectangles(new SolidBrush(cdgColorMousQuadrantBorder.Color), mousQuadDraw.Count != 0 && cbQuadrantsUse.Checked
+                    ? mousQuadDraw.ToArray()
+                    : defaultRectArry);
 
-            e.Graphics.FillRectangles(new SolidBrush(cdgColorMousQuadrantBorder.Color), mousQuadDraw.Count != 0 && cbQuadrantsUse.Checked
-                ? mousQuadDraw.ToArray()
-                : new Rectangle[] { Rectangle.Empty });
-
-            e.Graphics.DrawRectangles(new Pen(cdgColorShapeQuadrantBorder.Color, 1), circleShapeQuadDraw.Count != 0 && cbQuadrantsUse.Checked
-                ? circleShapeQuadDraw.ToArray()
-                : new Rectangle[] { Rectangle.Empty });
+                e.Graphics.FillRectangles(new SolidBrush(cdgColorShapeQuadrantBorder.Color), circleShapeQuadDraw.Count != 0 && cbQuadrantsUse.Checked
+                    ? circleShapeQuadDraw.ToArray()
+                    : defaultRectArry);
+            }
             
             e.Graphics.FillRectangles(new SolidBrush(cdgCelColor.Color), celDraw.Count != 0
-                  ? celDraw.ToArray()
-                  : new Rectangle[] { Rectangle.Empty });
-       
-            // brush sape on screen            
-            e.Graphics.DrawEllipse(new Pen(Color.FromArgb(100, 255, 0, 0), 2),
-                brusType == "Circle"
-                ? new Rectangle(new Point((int)GetMousePosition().X - (widthControlPannal + lastBrushSize),(int)GetMousePosition().Y - lastBrushSize),new Size(lastBrushSize * 2, lastBrushSize * 2))
-                : Rectangle.Empty );
-            
-            e.Graphics.DrawRectangle(new Pen(Color.FromArgb(100, 255, 0, 0), 2),
-                brusType != "Circle"
-                ? new Rectangle(new Point((int)GetMousePosition().X - (widthControlPannal + lastBrushSize),(int)GetMousePosition().Y - lastBrushSize),new Size(lastBrushSize * 2, lastBrushSize * 2))
-                : Rectangle.Empty
-                );
-            
+                    ? celDraw.ToArray()
+                    : defaultRectArry);
+
         }
         public void BrushResizer(object sender, MouseEventArgs e)
         {
@@ -499,10 +478,10 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
             if (value > maxBrushSize) txtbrushSize.Text = "" + maxBrushSize;
 
         }
-        private void DrawQuadrants(PaintEventArgs e)
+        private void CreateRectDrawQuadrants()
         {                 
             for (int x = 0; x < quadrantsInX; x++)
-                for (int y = 0; y < quadrantsInY; y++)
+                for (int y = 0; y < quadrantsInY; y++) 
                 {
                     quadDraw.Add(quadrants[x, y] != 0
                         ? new Rectangle(x * (10 * celSize), y * (10 * celSize), (10 * celSize), (10 * celSize))
@@ -518,17 +497,9 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
 
                     circleShapeQuadDraw.Add(circleShapeQuats[x, y] != 0
                        ? new Rectangle(x * (10 * celSize), y * (10 * celSize), (10 * celSize), (10 * celSize))
-                       : Rectangle.Empty);
-
-                    if (cbDrawQuadrantsInfo.Checked)
-                    { 
-                        if (quadrants[x, y] != 0) e.Graphics.DrawString($"{quadrants[x, y]}", new Font("", celSize * 3), Brushes.White, x * (10 * celSize) + 2, y * (10 * celSize) + 2);
-                        if (subQuadrants[x, y] != 0) e.Graphics.DrawString($"\n{subQuadrants[x, y]}", new Font("", celSize * 3), Brushes.White, x * (10 * celSize) + 2, y * (10 * celSize)+2);
-                    }
-
+                       : Rectangle.Empty);                  
                 }
         }
-
 
         private void CelControles(int x, int y)
         {
@@ -605,7 +576,6 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
         {
             CreateCheckBox(ref cbQuadrantsUse, true, "Quadrant rendering", Appearance.Normal, new Rectangle(x + 20, y + 25, 155, 25), null);
             CreateCheckBox(ref cbDrawQuadrants, false, "Draw Quadrant", Appearance.Normal, new Rectangle(x + 20, y + 50, 155, 25), null);
-            CreateCheckBox(ref cbDrawQuadrantsInfo, false, "Draw Quadrant info", Appearance.Normal, new Rectangle(x + 20, y + 75, 155, 25), null);
 
             CreateColorDialog(ref cdgColorQuadrantBorder, "QuadrantBorder", FlatStyle.System, new Rectangle(x + 20, y + 105, 130, 25), new colorPicker_Ok_Action(() => Refresh()));
             CreateColorDialog(ref cdgColorSubQuadrantBorder, "Sub quadrantBorder", FlatStyle.System, new Rectangle(x + 20, y + 135, 130, 25), new colorPicker_Ok_Action(() => Refresh()));
@@ -712,13 +682,7 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
             ControleDraw += (object sender, PaintEventArgs e) => e.Graphics.DrawString("Shapes (WIP) ", new Font("", 10), Brushes.Red, x, y);
 
             CreateButton("Static circle", FlatStyle.System, new Rectangle(x + 20, y + 25, 78, 25), new btnAction(() => {
-
-                Vector2 screenCenter = new Vector2((Width - widthControlPannal) / 2, Height / 2);
-                rTeller = 0;
-
-                staticCircleShapes.Add(new CircleShape(GetPointFromPoint(screenCenter,350, rTeller),celSize));
-                staticCircleShapes.Add(new CircleShape(screenCenter, 50));
-
+                //Vector2 screenCenter = new Vector2((Width - widthControlPannal) / 2, Height / 2);
             }));
 
 
