@@ -16,7 +16,7 @@ namespace GameEngineForms.Services
     {
         public static Vector2 GetMousePosition()
         {
-            Rectangle screenRectangle = GameObject.FormToRun.RectangleToScreen(GameObject.FormToRun.ClientRectangle);
+            Rectangle screenRectangle = GameObject.GameToRun.RectangleToScreen(GameObject.GameToRun.ClientRectangle);
 
             return new Vector2
             {

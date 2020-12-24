@@ -37,7 +37,7 @@ namespace GameEngineForms
 
                     if (fpsDisplyInterval.ElapsedMilliseconds > 100)
                     {
-                        GameObject.FormToRun.Text =
+                        GameObject.GameToRun.Text =
                         $"ScreenSize: {GameObject.LoopContainer.Width} x {GameObject.LoopContainer.Height}" +
                         $"   Objects: {GameObject.ObjectCount}" +
                         $"   FrameTiming: {IdelTiming.GetFps()} ";

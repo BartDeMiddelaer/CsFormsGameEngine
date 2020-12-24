@@ -17,7 +17,7 @@ using static GameEngineForms.Services.ControlServices;
 
 namespace GameEngineForms.Forms.GameOfLifeDemo
 {
-    public partial class GameOfLife : DefaultFormParent
+    public partial class GameOfLife : DefaultParentForm
     {
         /// <summary>
         /// https://www.youtube.com/watch?v=6avJHaC3C2U
@@ -113,7 +113,7 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
             DrawCelControles(5, 155);
             QuadrantsControles(5, 570);
 
-            Paint += (object sender, PaintEventArgs e) => ControleDraw?.Invoke(sender, e);          
+              
             MouseWheel += BrushResizer;
             GameObject.LoopContainer.MouseDown += (object sender, MouseEventArgs e) => drawing = true;
             GameObject.LoopContainer.MouseUp += (object sender, MouseEventArgs e) => drawing = false;
@@ -294,6 +294,10 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
             }
         }
 
+        public override void StaticPaint(object sender, PaintEventArgs e)
+        {
+            ControleDraw.Invoke(sender, e);
+        }
         public override void GameLoop(object sender, PaintEventArgs e)
         {
             Clear();

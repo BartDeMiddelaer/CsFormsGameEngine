@@ -13,7 +13,7 @@ using static GameEngineForms.Services.ExtensionMethods;
 
 namespace GameEngineForms.Forms.CircelPackingDemo
 {
-    class CircelPacking : DefaultFormParent
+    class CircelPacking : DefaultParentForm
     {
 
         static Random rand = new Random();

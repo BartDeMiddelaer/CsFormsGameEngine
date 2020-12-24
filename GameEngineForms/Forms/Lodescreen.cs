@@ -87,7 +87,7 @@ namespace GameEngineForms.Forms
             // Text ------------------------------------
             e.Graphics.DrawString("Game", new Font("Arial", 50), Brushes.White, 0, 50);
             e.Graphics.DrawString("Engine", new Font("Arial", 50), Brushes.Gray, 200, 50);
-            e.Graphics.DrawString("Made in winForms", new Font("Arial", 15), Brushes.Red, 420, 92);
+            e.Graphics.DrawString("SandBox of fun", new Font("Arial", 15), Brushes.Red, 420, 92);
             e.Graphics.DrawString("Bart De Middelaer", new Font("Arial", 7), Brushes.Black, 212, 115);
 
             Tasks.ForEach(task => {
@@ -99,7 +99,7 @@ namespace GameEngineForms.Forms
             if (Tasks.TrueForAll(t => t.ToDo.IsCompleted))
             {
                 Hide();
-                GameObject.FormToRun.ShowDialog();
+                GameObject.GameToRun.ShowDialog();
             }
         }
 

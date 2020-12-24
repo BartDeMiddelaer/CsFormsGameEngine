@@ -35,7 +35,7 @@ namespace GameEngineForms.Services
                 FlatStyle = style,
             };
 
-            GameObject.FormToRun.Controls.Add(btn);
+            GameObject.GameToRun.Controls.Add(btn);
             btn.Click += (object sender, EventArgs e) => action();
         }
         public static void CreateButton(ref Button btn, string text, FlatStyle style, Rectangle location, btnAction action)
@@ -47,7 +47,7 @@ namespace GameEngineForms.Services
                 FlatStyle = style,
             };
 
-            GameObject.FormToRun.Controls.Add(btn);
+            GameObject.GameToRun.Controls.Add(btn);
             btn.Click += (object sender, EventArgs e) => action();
         }
         public static void CreateColorDialog(ref ColorDialog cdg, string text, FlatStyle style, Rectangle location, colorPicker_Ok_Action action)
@@ -61,7 +61,7 @@ namespace GameEngineForms.Services
             };
 
             btnColorPicker.Click += (object sender, EventArgs e) => { if (tempCdg.ShowDialog() == DialogResult.OK) action(); };
-            GameObject.FormToRun.Controls.Add(btnColorPicker);
+            GameObject.GameToRun.Controls.Add(btnColorPicker);
             cdg = tempCdg;
         }
         public static void CreateCheckBox(ref CheckBox cb,bool isChecked, string text, Appearance appearance, Rectangle location, CheckedChangedAction action)
@@ -78,7 +78,7 @@ namespace GameEngineForms.Services
             if (action != null)
                 cb.CheckedChanged += (object sender, EventArgs e) => action();
 
-            GameObject.FormToRun.Controls.Add(cb);
+            GameObject.GameToRun.Controls.Add(cb);
         }
         public static void CreateTextBox(ref TextBox txt, Point location, int width, string startValue,int maxLength, BorderStyle style, TextChangedAction action)
         {
@@ -92,7 +92,7 @@ namespace GameEngineForms.Services
             if (action != null)
                 txt.TextChanged += (object sender, EventArgs e) => action();  
             
-            GameObject.FormToRun.Controls.Add(txt);          
+            GameObject.GameToRun.Controls.Add(txt);          
         }
         public static void CreateComboBox(ref ComboBox cmb, Rectangle location, Array items)
         {
@@ -102,7 +102,7 @@ namespace GameEngineForms.Services
 
             cmb.DataSource = items;
 
-            GameObject.FormToRun.Controls.Add(cmb);
+            GameObject.GameToRun.Controls.Add(cmb);
         }
     }
 }
