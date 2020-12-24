@@ -6,9 +6,8 @@ using System.Text;
 
 namespace GameEngineForms.Resources
 {
-
     // to call
-    public static class StaticResources
+    public static class StaticGameResources
     {
         public static List<BitmapInfo> BitmapResources { get; set; } = new List<BitmapInfo>() { };
         public static List<SoundInfo> SoundResources { get; set; } = new List<SoundInfo>() { };
@@ -37,6 +36,5 @@ namespace GameEngineForms.Resources
     {
         public string Name { get; set; }
         public SoundPlayer Sound { get; set; }
-
     }        
 }

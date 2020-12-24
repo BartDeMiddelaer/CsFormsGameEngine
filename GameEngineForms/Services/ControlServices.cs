@@ -4,27 +4,19 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
-using static GameEngineForms.Resources.DynamicResources;
+using static GameEngineForms.Resources.GameEngineObjects;
 
 namespace GameEngineForms.Services
 {
-    public static class EventServices
+    public static class ControlServices
     {
-        public static void InvokeDraw(object sender, PaintEventArgs e) => GameCycle?.Invoke(sender, e);
+        public static void InvokeGameCycle(object sender, PaintEventArgs e) => GameCycle?.Invoke(sender, e);
         internal delegate void DrawDelegate(object sender, PaintEventArgs e);
         internal static event DrawDelegate GameCycle;
 
-        public static void InvokeGPUAccel() => GPUAccel?.Invoke();
-        internal delegate void GPUAccelDelegate();
-        internal static event GPUAccelDelegate GPUAccel;
-
-        public static void InvokeInitialize() => Initialize?.Invoke();
+        public static void InvokeAssetLoading() => AssetLoading?.Invoke();
         internal delegate void InitializeDelegate();
-        internal static event InitializeDelegate Initialize;
-
-        public static void InvokeDestructor() => Destructor?.Invoke();
-        internal delegate void DestructorDelegate();
-        internal static event DestructorDelegate Destructor;
+        internal static event InitializeDelegate AssetLoading;
 
 
         public delegate void btnAction();
@@ -43,7 +35,7 @@ namespace GameEngineForms.Services
                 FlatStyle = style,
             };
 
-            GameObjects.FormToRun.Controls.Add(btn);
+            GameObject.FormToRun.Controls.Add(btn);
             btn.Click += (object sender, EventArgs e) => action();
         }
         public static void CreateButton(ref Button btn, string text, FlatStyle style, Rectangle location, btnAction action)
@@ -55,10 +47,9 @@ namespace GameEngineForms.Services
                 FlatStyle = style,
             };
 
-            GameObjects.FormToRun.Controls.Add(btn);
+            GameObject.FormToRun.Controls.Add(btn);
             btn.Click += (object sender, EventArgs e) => action();
         }
-
         public static void CreateColorDialog(ref ColorDialog cdg, string text, FlatStyle style, Rectangle location, colorPicker_Ok_Action action)
         {
             ColorDialog tempCdg = cdg ?? new ColorDialog();
@@ -70,7 +61,7 @@ namespace GameEngineForms.Services
             };
 
             btnColorPicker.Click += (object sender, EventArgs e) => { if (tempCdg.ShowDialog() == DialogResult.OK) action(); };
-            GameObjects.FormToRun.Controls.Add(btnColorPicker);
+            GameObject.FormToRun.Controls.Add(btnColorPicker);
             cdg = tempCdg;
         }
         public static void CreateCheckBox(ref CheckBox cb,bool isChecked, string text, Appearance appearance, Rectangle location, CheckedChangedAction action)
@@ -87,7 +78,7 @@ namespace GameEngineForms.Services
             if (action != null)
                 cb.CheckedChanged += (object sender, EventArgs e) => action();
 
-            GameObjects.FormToRun.Controls.Add(cb);
+            GameObject.FormToRun.Controls.Add(cb);
         }
         public static void CreateTextBox(ref TextBox txt, Point location, int width, string startValue,int maxLength, BorderStyle style, TextChangedAction action)
         {
@@ -101,9 +92,8 @@ namespace GameEngineForms.Services
             if (action != null)
                 txt.TextChanged += (object sender, EventArgs e) => action();  
             
-            GameObjects.FormToRun.Controls.Add(txt);
+            GameObject.FormToRun.Controls.Add(txt);          
         }
-
         public static void CreateComboBox(ref ComboBox cmb, Rectangle location, Array items)
         {
             cmb = new ComboBox { 
@@ -112,7 +102,7 @@ namespace GameEngineForms.Services
 
             cmb.DataSource = items;
 
-            GameObjects.FormToRun.Controls.Add(cmb);
+            GameObject.FormToRun.Controls.Add(cmb);
         }
     }
 }

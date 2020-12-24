@@ -2,14 +2,10 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFramework>net5.0-windows</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationIcon />
     <Win32Resource />
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="CUDAfy.NET" Version="1.29.5576.13786" />
-  </ItemGroup>
 
 </Project>

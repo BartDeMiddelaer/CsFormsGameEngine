@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
-using static GameEngineForms.Resources.StaticResources;
-using static GameEngineForms.Resources.DynamicResources;
-using static GameEngineForms.Services.EventServices;
+using static GameEngineForms.Resources.StaticGameObjects;
+using static GameEngineForms.Resources.GameEngineObjects;
+using static GameEngineForms.Services.ControlServices;
+using static GameEngineForms.Services.GameEngineServices;
 using System.Drawing.Drawing2D;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,17 +12,19 @@ using GameEngineForms.Resources;
 using Timer = System.Windows.Forms.Timer;
 using System.Collections.Generic;
 using GameEngineForms.Services;
-using GameEngineForms.Forms.GameOfLifeDemo;
 
 namespace GameEngineForms.Forms
 {
     public partial class Lodescreen : Form
     {
         readonly PictureBox LoopContainer = new PictureBox();
-        readonly Task gameFormLoading = new Task(InvokeInitialize);
-        readonly Task showMinimumTime = new Task(() =>  Thread.Sleep(GameObjects.MinimumLodeScreenTime));
-        readonly Task bitmapLoading = new Task(() => BitmapResources = new BitmapRepo().Resources);
-        readonly Task soundLoading = new Task(() => SoundResources = new SoundRepo().Resources);
+        List<LoadTask> Tasks = new List<LoadTask>{
+
+            new LoadTask{ Index = 3, Name = "Game asset's loading",     ToDo = new Task(InvokeAssetLoading) },
+            new LoadTask{ Index = 2, Name = "Bitmap asset's loading",   ToDo = new Task(() => BitmapResources = new BitmapRepo().Resources)},
+            new LoadTask{ Index = 1, Name = "Asset loading",            ToDo = new Task(() => SoundResources = new SoundRepo().Resources)},
+            new LoadTask{ Index = 0, Name = "Initialization",           ToDo = new Task(() => Thread.Sleep(GameObject.MinimumLodeScreenTime))}
+        };
         readonly Timer tikker = new Timer();
 
         public Lodescreen()
@@ -35,15 +38,11 @@ namespace GameEngineForms.Forms
             LoopContainer.Dock = DockStyle.Fill;
             LoopContainer.Paint += Render;
             Controls.Add(LoopContainer);
+            Tasks.ForEach(t => t.ToDo.Start());
 
             tikker.Tick += (object sender, EventArgs e) => LoopContainer.Refresh(); 
             tikker.Start();
             tikker.Interval = 10;
-            gameFormLoading.Start();
-            showMinimumTime.Start();
-            bitmapLoading.Start();
-            soundLoading.Start();
-
         }
 
         private void Render(object sender, PaintEventArgs e)
@@ -86,55 +85,35 @@ namespace GameEngineForms.Forms
             #endregion
 
             // Text ------------------------------------
-            e.Graphics.DrawString("Zero -", new Font("Arial", 50), Brushes.White, 0, 50);
-            e.Graphics.DrawString("Point", new Font("Arial", 50), Brushes.Gray, 200, 50);
-            e.Graphics.DrawString("Made in winForms", new Font("Arial", 15), Brushes.Red, 380, 92);
+            e.Graphics.DrawString("Game", new Font("Arial", 50), Brushes.White, 0, 50);
+            e.Graphics.DrawString("Engine", new Font("Arial", 50), Brushes.Gray, 200, 50);
+            e.Graphics.DrawString("Made in winForms", new Font("Arial", 15), Brushes.Red, 420, 92);
             e.Graphics.DrawString("Bart De Middelaer", new Font("Arial", 7), Brushes.Black, 212, 115);
 
-            e.Graphics.DrawString(              
-                $"Bitmaps Loding: {bitmapLoading.Status} \n" +
-                $"Sound Loading: {soundLoading.Status} \n" +
-                $"Game instance Loading: {gameFormLoading.Status}  \n" +
-                $"Initialize: { showMinimumTime.Status} \n", 
-                new Font("Arial", 10), Brushes.Red, 210, Height - 240);
+            Tasks.ForEach(task => {
 
-            if (bitmapLoading.IsCompleted && showMinimumTime.IsCompleted && soundLoading.IsCompleted && gameFormLoading.IsCompleted)
-            {               
-                Close(); Hide();
-                GameObjects.FormToRun.ShowDialog();          
+                int txtOffset = task.Index * 18;
+                e.Graphics.DrawString(task.ToString(), new Font("Arial", 10), Brushes.Red, 210, Height - (240 + txtOffset));
+            });
+
+            if (Tasks.TrueForAll(t => t.ToDo.IsCompleted))
+            {
+                Hide();
+                GameObject.FormToRun.ShowDialog();
             }
         }
 
-        static GraphicsPath RoundedRect(Rectangle bounds, int radius)
+        public class LoadTask
         {
-            int diameter = radius * 2;
-            Size size = new Size(diameter, diameter);
-            Rectangle arc = new Rectangle(bounds.Location, size);
-            GraphicsPath path = new GraphicsPath();
+            public int Index { get; set; }
+            public string Name { get; set; }
+            public Task ToDo { get; set; }
 
-            if (radius == 0)
+            public override string ToString()
             {
-                path.AddRectangle(bounds);
-                return path;
+                string status = ToDo.IsCompleted ? "Done!" : "Loading";
+                return $"{status}      \t {Name}";
             }
-
-            // top left arc  
-            path.AddArc(arc, 180, 90);
-
-            // top right arc  
-            arc.X = bounds.Right - diameter;
-            path.AddArc(arc, 270, 90);
-
-            // bottom right arc  
-            arc.Y = bounds.Bottom - diameter;
-            path.AddArc(arc, 0, 90);
-
-            // bottom left arc 
-            arc.X = bounds.Left;
-            path.AddArc(arc, 90, 90);
-
-            path.CloseFigure();
-            return path;
         }
     }
 }

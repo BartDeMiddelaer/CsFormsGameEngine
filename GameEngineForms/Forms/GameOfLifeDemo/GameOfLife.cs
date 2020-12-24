@@ -2,22 +2,22 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
-using static GameEngineForms.Services.DrawServices;
-using static GameEngineForms.Services.EventServices;
-using static GameEngineForms.Services.MathServices;
-using static GameEngineForms.Resources.DynamicResources;
 using System.Numerics;
 using System.Drawing.Drawing2D;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
-using GameEngineForms.Forms.GameOfLifeDemo.Objects;
 using System.Threading.Tasks;
 using System.Threading;
 using System.IO;
+using static GameEngineForms.Resources.GameEngineObjects;
+using static GameEngineForms.Resources.StaticGameObjects;
+using static GameEngineForms.Services.ExtensionMethods;
+using static GameEngineForms.Services.GameEngineServices;
+using static GameEngineForms.Services.ControlServices;
 
 namespace GameEngineForms.Forms.GameOfLifeDemo
 {
-    public partial class GameOfLife : Form    
+    public partial class GameOfLife : DefaultFormParent
     {
         /// <summary>
         /// https://www.youtube.com/watch?v=6avJHaC3C2U
@@ -55,7 +55,6 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
         readonly List<Rectangle> mousQuadDraw = new List<Rectangle>();
         readonly List<Rectangle> circleShapeQuadDraw = new List<Rectangle>();
 
-        readonly List<CircleShape> staticCircleShapes = new List<CircleShape>();
 
         int[,] oldCels, newCels, mousQuadrants, quadrants, subQuadrants, circleShapeQuats;
         int celSize, maxCelsInX, maxCelsInY, quadrantsInX, quadrantsInY,
@@ -65,25 +64,29 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
         bool running = true,
              drawing = false;
 
-        string drawMesage = "Nothing spawnd",
-               modeMesage = "Draw",
-               brusType = "Rect";
+        static string 
+            drawMesage = "Nothing spawnd",
+            modeMesage = "Draw",
+            brusType = "Rect";
 
 
         #endregion
-        public GameOfLife() => Initialize += () =>
+ 
+
+        public override void GameAssets()
         {
+            base.GameAssets();
             celSize = 2;
             celCanvasWidth = 1280;// moet deelbaar door 10 zijn
             celCanvasHeight = 800;// moet deelbaar door 10 zijn
 
             maxCelsInX = celCanvasWidth / celSize;
-            maxCelsInY = celCanvasHeight / celSize; 
+            maxCelsInY = celCanvasHeight / celSize;
             quadrantsInX = maxCelsInX / 10;
             quadrantsInY = maxCelsInY / 10;
             widthControlPannal = 210;
             maxBrushSize = 200;
-            StartBrushSize = maxBrushSize/4;
+            StartBrushSize = maxBrushSize / 4;
             lastBrushSize = StartBrushSize;
             brushAcc = 1;
 
@@ -93,11 +96,10 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
             BackColor = Color.Linen;
             MaximizeBox = false;
             //TopMost = true;
-            
-            GameObjects.UseDrawFunctions = true;
-            GameObjects.RenderMode = SmoothingMode.HighSpeed;
-            GameObjects.LoopContainer.BackColor = Color.FromArgb(10,10,10);
-            GameObjects.LoopContainer.Bounds =
+        
+            GameObject.RenderMode = SmoothingMode.HighSpeed;
+            GameObject.LoopContainer.BackColor = Color.FromArgb(10, 10, 10);
+            GameObject.LoopContainer.Bounds =
                 new Rectangle(widthControlPannal, 0, (celSize * maxCelsInX) + 1, (celSize * maxCelsInY) + 1);
 
             oldCels = new int[maxCelsInX, maxCelsInY];
@@ -107,19 +109,15 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
             mousQuadrants = new int[quadrantsInX, quadrantsInY];
             circleShapeQuats = new int[quadrantsInX, quadrantsInY];
 
-
-            CelControles(5,5);
+            CelControles(5, 5);
             DrawCelControles(5, 155);
-            SolidAndPulsersControles(5,465);
             QuadrantsControles(5, 570);
 
-            Paint += (object sender, PaintEventArgs e) => ControleDraw?.Invoke(sender, e);
-            GameCycle += DrawLoop;
+            Paint += (object sender, PaintEventArgs e) => ControleDraw?.Invoke(sender, e);          
             MouseWheel += BrushResizer;
-            GameObjects.LoopContainer.MouseDown += (object sender, MouseEventArgs e) => drawing = true;
-            GameObjects.LoopContainer.MouseUp += (object sender, MouseEventArgs e) => drawing = false;       
-        };
-
+            GameObject.LoopContainer.MouseDown += (object sender, MouseEventArgs e) => drawing = true;
+            GameObject.LoopContainer.MouseUp += (object sender, MouseEventArgs e) => drawing = false;
+        }
 
         private void UpdateCels()
         {
@@ -179,7 +177,6 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
                 }
             }
         }
-
 
 
         private void MarkSubQuadrants(int x, int y)
@@ -296,53 +293,18 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
                 }
             }
         }
- 
-        private void DrawLoop(object sender, PaintEventArgs e)
+
+        public override void GameLoop(object sender, PaintEventArgs e)
         {
             Clear();
-            MakeCelsAndQuadrants();                          
-            if(running) UpdateCels(); 
+            MakeCelsAndQuadrants();
+            if (running) UpdateCels();
             DrawScene(e);
             if (drawing) MouseDraw();
 
             // ShapeDraw();
 
 
-        }
-        private void ShapeDraw()
-        {
-            int mouseX = (int)Math.Ceiling(GetMousePosition().X - widthControlPannal);
-            int mouseY = (int)Math.Ceiling(GetMousePosition().Y);
-
-            Parallel.ForEach(staticCircleShapes, shape =>
-            {
-                for (int qwadX = 0; qwadX < quadrantsInX; qwadX++)
-                {
-                    for (int qwadY = 0; qwadY < quadrantsInY; qwadY++)
-                    {
-                        if (circleShapeQuats[qwadX, qwadY] != 0)
-                        {
-                            for (int celXindex = 0; celXindex < 10; celXindex++)
-                            {
-                                for (int celYindex = 0; celYindex < 10; celYindex++)
-                                {
-                                    int x = (qwadX * 10) + celXindex;
-                                    int y = (qwadY * 10) + celYindex;
-
-                                    Vector2 celVecter = new Vector2(x * celSize, y * celSize);
-                                    Vector2 shapeCenter = new Vector2(shape.Center.X, shape.Center.Y);
-
-                                    float Distance = Vector2.Distance(celVecter, shapeCenter);        
-                                    
-                                    if (Distance < shape.Radius)
-                                        newCels[x, y] = 1;
-                                        
-                                }
-                            }
-                        }
-                    }
-                }
-            });
         }
         private void MakeCelsAndQuadrants()
         {          
@@ -361,9 +323,8 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
                 }
 
             MakeMouseQuadrants();
-            MakeShapeQuadrants();
 
-            GameObjects.ObjectCount = celDraw.Count;
+            GameObject.ObjectCount = celDraw.Count;
         }
         private void MakeMouseQuadrants()
         {
@@ -402,31 +363,6 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
                     }
                 }
             }
-
-        }
-        private void MakeShapeQuadrants()
-        {
-            foreach (var shape in staticCircleShapes)
-            {          
-                for (int r = 0; r < shape.Radius; r += 10)
-                {
-                    for (int i = 0; i < 360; i += brushAcc)
-                    {
-                        Vector2 cheakPoint = GetPointFromPoint(new Vector2(shape.Center.X, shape.Center.Y), shape.Radius, i);
-
-                        cheakPoint = GetPointFromPoint(new Vector2(shape.Center.X, shape.Center.Y), shape.Radius - r, i);
-                        int xIndex = (int)cheakPoint.X / (celSize * 10);
-                        int yIndex = (int)cheakPoint.Y / (celSize * 10);
-
-                        if (xIndex >= 0 && xIndex <= quadrantsInX  && yIndex >= 0 && yIndex < quadrantsInY)
-                            circleShapeQuats[xIndex, yIndex] = 1;
-                    }
-                }
-            }
-
-
-            // add rect Qwads
-
 
         }
         private void DrawScene(PaintEventArgs e)
@@ -511,8 +447,6 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
 
                 newCels = new int[maxCelsInX, maxCelsInY];
                 Clear();
-                staticCircleShapes.Clear();
-
             }));
             CreateColorDialog(ref cdgCelColor, "Cel inner", FlatStyle.System, new Rectangle(x + 20, y + 55, 130, 25), new colorPicker_Ok_Action(() => Refresh()));
 
@@ -677,19 +611,7 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
                 e.Graphics.DrawLine(Pens.Black, new Point(x + 20, y + 200), new Point(x + 119, y + 200));
             };
         }
-        private void SolidAndPulsersControles(int x, int y)
-        {
-            ControleDraw += (object sender, PaintEventArgs e) => e.Graphics.DrawString("Shapes (WIP) ", new Font("", 10), Brushes.Red, x, y);
-
-            CreateButton("Static circle", FlatStyle.System, new Rectangle(x + 20, y + 25, 78, 25), new btnAction(() => {
-                //Vector2 screenCenter = new Vector2((Width - widthControlPannal) / 2, Height / 2);
-            }));
-
-
-            CreateButton("Static circle", FlatStyle.System, new Rectangle(x + 104, y + 25, 76, 25), new btnAction(() => { }));
-            CreateButton("Puls rect", FlatStyle.System, new Rectangle(x + 20, y + 55, 78, 25), new btnAction(() => { }));
-            CreateButton("Puls circle", FlatStyle.System, new Rectangle(x + 104, y + 55, 76, 25), new btnAction(() => { }));
-        }
+  
         private void GlitterGun(int x, int y)
         {
             newCels[2 + x, 2 + y] = 1; 
