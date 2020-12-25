@@ -234,8 +234,8 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
         private void MouseDraw()
         {                    
 
-            int mouseX = (int)Math.Ceiling(GetMousePosition().X - widthControlPannal);
-            int mouseY = (int)Math.Ceiling(GetMousePosition().Y);
+            int mouseX = (int)Math.Ceiling(GetMousePosition<Vector2>().X - widthControlPannal);
+            int mouseY = (int)Math.Ceiling(GetMousePosition<Vector2>().Y);
 
             if (brusType == "Circle")
             {
@@ -332,8 +332,8 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
         }
         private void MakeMouseQuadrants()
         {
-            int mouseX = (int)Math.Ceiling(GetMousePosition().X - widthControlPannal);
-            int mouseY = (int)Math.Ceiling(GetMousePosition().Y);
+            int mouseX = (int)Math.Ceiling(GetMousePosition<Vector2>().X - widthControlPannal);
+            int mouseY = (int)Math.Ceiling(GetMousePosition<Vector2>().Y);
 
             if (brusType == "Circle")
             {

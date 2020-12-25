@@ -26,7 +26,6 @@ namespace GameEngineForms
                 e.Graphics.SmoothingMode = GameObject.RenderMode;
                 InvokeGameCycle(sender, e);
             });
-
             
             Application.Idle += (object sender, EventArgs e) => 
             {
@@ -47,7 +46,6 @@ namespace GameEngineForms
                 }
             };
             
-
             fpsDisplyInterval.Start();
             new Lodescreen().ShowDialog();
         }       

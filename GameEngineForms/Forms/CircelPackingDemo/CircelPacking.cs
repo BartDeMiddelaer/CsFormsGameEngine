@@ -16,65 +16,77 @@ namespace GameEngineForms.Forms.CircelPackingDemo
     class CircelPacking : DefaultParentForm
     {
 
-        static Random rand = new Random();
         int strakeSize = 1;
+        const int mouseCircelDiameter = 120;
+        static Random rand = new Random();
+        Circel mouseCircel = new Circel(new Vector2(), mouseCircelDiameter);
 
         List<Circel> circels =
-            new List<Circel> {new Circel(new Vector2(rand.Next(0,800),rand.Next(0, 800)),rand.Next(0,80))};
+            new List<Circel> {new Circel(new Vector2(800/2,800/2),80)};
                     
         public override void GameAssets()
         {
             Height = 800;
             Width = 800;
             base.GameAssets();
+            BackColor = Color.Black;
         }
         public override void GameLoop(object sender, PaintEventArgs e)
         {
             // ------------------------------------------------------------------------------
             // New Circal Props
             // ------------------------------------------------------------------------------
-            bool haveNewCircal = false;
-            int newDiameter = 0;
+            var haveNewCircal = false;
+            var newDiameter = 0;
             Vector2 newLocation = new Vector2();
 
+            
             while (!haveNewCircal)
             {
-                newDiameter = rand.Next(0, 80);
+                newDiameter = rand.Next(0,500);
                 newLocation = new Vector2().RandomVector2();
                 haveNewCircal = circels.TrueForAll(c => Vector2.Subtract(newLocation, c.location).Length() > (newDiameter / 2 + c.Diameter / 2) + strakeSize);
 
             }   circels.Add(new Circel(newLocation, newDiameter));
 
             // ------------------------------------------------------------------------------
-            // Draw
-            circels.ForEach(c => { e.Graphics.DrawEllipse(
-                  new Pen(RandomColor(), strakeSize),
+            // Draw MouseBall + update
+            mouseCircel.location = GetMousePosition<Vector2>();
+
+            e.Graphics.FillEllipse(Brushes.Gray, new Rectangle(
+                new Point(
+                    GetMousePosition<Point>().X - mouseCircelDiameter/2,
+                    GetMousePosition<Point>().Y - mouseCircelDiameter/2), new Size(mouseCircelDiameter, mouseCircelDiameter)));
+
+            // DrawCircels
+            circels.ForEach(c => { e.Graphics.FillEllipse(
+                  new SolidBrush(c.BorderColor),
                   c.location.X - (c.Diameter / 2),
                   c.location.Y - (c.Diameter / 2),
                   c.Diameter,
                   c.Diameter);
-            });
+            });  
 
             // Colide
             circels.ForEach(c => {
 
+                var travel = Vector2.Subtract(GetMousePosition<Vector2>(), c.location).Length();
+                var combindeDiameters = (mouseCircelDiameter / 2 + c.Diameter / 2) + strakeSize;
 
-                if (circels.TrueForAll(c => Vector2.Subtract(newLocation, c.location).Length() > (newDiameter / 2 + c.Diameter / 2) + strakeSize)) 
-                    
-                    c.location.Y += c.FallSpeed;
+                if (travel < combindeDiameters)
+                {
+                    // moet nog aangemast worden
+                    Intersection_Circle(c.location, c.Diameter / 2, GetMousePosition<Vector2>(), c.location, out Vector2 intersection);
+                    var angel = GetAngel(GetMousePosition<Vector2>(),c.location);
 
-            
-
+                    c.location = GetPointFromPoint(intersection, (c.Diameter / 2) + 5, angel);
+                }
 
             });
 
             // Dispose
-            circels.RemoveAll(c => 
-            c.LifeTime.Elapsed > TimeSpan.FromSeconds(rand.Next(5,20)) || 
-            c.Diameter < 10);
-            // ------------------------------------------------------------------------------
-
-            
+             circels.RemoveAll(c => c.LifeTime.Elapsed > TimeSpan.FromSeconds(25) || c.Diameter < 10);
+            // ------------------------------------------------------------------------------        
         }
     }
 
@@ -84,6 +96,7 @@ namespace GameEngineForms.Forms.CircelPackingDemo
         public int Diameter { get; set; }
         public int FallSpeed { get; set; }
         public Stopwatch LifeTime { get; set; } = new Stopwatch();
+        public Color BorderColor { get; set; } = RandomColor();
 
         public Circel(Vector2 loc, int dia) 
         {            

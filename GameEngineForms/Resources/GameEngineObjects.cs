@@ -30,7 +30,7 @@ namespace GameEngineForms.Resources
         // -------------------------------------------------------------------------
 
         // Life Time Porpertys -----------------------------------------------------
-        public DefaultParentForm GameToRun { get; set; } = new GameOfLife(); // <------------ Set game here
+        public DefaultParentForm GameToRun { get; set; } = new CircelPacking(); // <------------ Set game here
         public PictureBox LoopContainer { get; set; } = new PictureBox();
         public SmoothingMode RenderMode { get; set; } = SmoothingMode.HighSpeed;
         public int MinimumLodeScreenTime { get; set; } = 100;

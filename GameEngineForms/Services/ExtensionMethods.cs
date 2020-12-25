@@ -13,26 +13,15 @@ namespace GameEngineForms.Services
 {
     public static class ExtensionMethods
     {
-
-        static DateTime lastCheckTime = DateTime.Now;
-        static long frameCount = 0;
-
         public static void AddValuePerSec(ref this float value, float pps)
         {
-            double secondsElapsed = (DateTime.Now - lastCheckTime).TotalSeconds;
-            long count = Interlocked.Exchange(ref frameCount, 0);
-            double fps = count / secondsElapsed;
-            lastCheckTime = DateTime.Now;
-            double speed = pps / fps;
-            Interlocked.Increment(ref frameCount);
-
-            value = float.IsInfinity((float)speed) ? 0 : value + (float)speed;
+            value = value + pps;
         }
-        public static void GetPointFromPoint(ref this Vector2 value, Vector2 from_, double l_, double h_)
+        public static void GetPointFromPoint(ref this Vector2 value, double l_, double h_)
         {
             value = new Vector2(
-                (float)(from_.X + Math.Cos((Math.PI / 180.0) * h_) * l_),
-                (float)(from_.Y + Math.Sin((Math.PI / 180.0) * h_) * l_)
+                (float)(value.X + Math.Cos((Math.PI / 180.0) * h_) * l_),
+                (float)(value.Y + Math.Sin((Math.PI / 180.0) * h_) * l_)
                 );
         }
         public static Vector2 Intersection_LineToLine(this Vector2 value, Vector2 s1, Vector2 e1, Vector2 s2, Vector2 e2)

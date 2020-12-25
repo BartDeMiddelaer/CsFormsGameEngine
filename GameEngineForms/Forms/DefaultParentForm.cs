@@ -25,7 +25,7 @@ namespace GameEngineForms.Forms
 
             // De groot van je window en de achtergrond color Dit wort in je StaticPaint gebruikt
             // je LoopContainer mag niet overlappen of je ziet je Btns niet en dergelijke
-            // Height = 600;  
+            // Height = 800;
             // Width = 800;
             BackColor = Color.Linen;
 
@@ -48,8 +48,7 @@ namespace GameEngineForms.Forms
             // je LoopContainer mag dit niet overlappen dus met 
             //                                                   ||      ||
             // GameObject.LoopContainer.Bounds = new Rectangle(<HIER>, <Hier>, Width, Height); in GameAssets kan je 
-            // je LoopContainer een offset geven 
-
+            // je LoopContainer een offset geven          
         }
         public virtual void GameLoop(object sender, PaintEventArgs e)
         {
