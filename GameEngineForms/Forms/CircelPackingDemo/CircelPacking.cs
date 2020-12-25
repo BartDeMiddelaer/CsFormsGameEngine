@@ -17,7 +17,7 @@ namespace GameEngineForms.Forms.CircelPackingDemo
     {
 
         int strakeSize = 1;
-        const int mouseCircelDiameter = 120;
+        const int mouseCircelDiameter = 220;
         static Random rand = new Random();
         Circel mouseCircel = new Circel(new Vector2(), mouseCircelDiameter);
 
@@ -33,6 +33,10 @@ namespace GameEngineForms.Forms.CircelPackingDemo
         }
         public override void GameLoop(object sender, PaintEventArgs e)
         {
+            // Dispose
+            circels.RemoveAll(c => c.LifeTime.Elapsed > TimeSpan.FromSeconds(5));
+            // ------------------------------------------------------------------------------     
+
             // ------------------------------------------------------------------------------
             // New Circal Props
             // ------------------------------------------------------------------------------
@@ -43,9 +47,10 @@ namespace GameEngineForms.Forms.CircelPackingDemo
             
             while (!haveNewCircal)
             {
-                newDiameter = rand.Next(0,500);
+                newDiameter = rand.Next(10,500);
                 newLocation = new Vector2().RandomVector2();
-                haveNewCircal = circels.TrueForAll(c => Vector2.Subtract(newLocation, c.location).Length() > (newDiameter / 2 + c.Diameter / 2) + strakeSize);
+                haveNewCircal = circels.TrueForAll(c => Vector2.Subtract(newLocation, c.location).Length() > (newDiameter / 2 + c.Diameter / 2) + strakeSize && 
+                                                        Vector2.Subtract(newLocation, mouseCircel.location).Length() > (mouseCircel.Diameter / 2 + c.Diameter / 2) + strakeSize);
 
             }   circels.Add(new Circel(newLocation, newDiameter));
 
@@ -82,11 +87,7 @@ namespace GameEngineForms.Forms.CircelPackingDemo
                     c.location = GetPointFromPoint(intersection, (c.Diameter / 2) + 5, angel);
                 }
 
-            });
-
-            // Dispose
-             circels.RemoveAll(c => c.LifeTime.Elapsed > TimeSpan.FromSeconds(25) || c.Diameter < 10);
-            // ------------------------------------------------------------------------------        
+            });          
         }
     }
 
