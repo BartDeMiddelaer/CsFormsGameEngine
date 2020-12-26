@@ -18,6 +18,7 @@ namespace GameEngineForms.Forms.CircelPackingDemo
 
         int strakeSize = 1;
         const int mouseCircelDiameter = 220;
+        int circelChap = 500;
         static Random rand = new Random();
         Circel mouseCircel = new Circel(new Vector2(), mouseCircelDiameter);
 
@@ -27,50 +28,12 @@ namespace GameEngineForms.Forms.CircelPackingDemo
         public override void GameAssets()
         {
             Height = 800;
-            Width = 800;
+            Width = 1250;
             base.GameAssets();
             BackColor = Color.Black;
         }
         public override void GameLoop(object sender, PaintEventArgs e)
         {
-            // Dispose
-            circels.RemoveAll(c => c.LifeTime.Elapsed > TimeSpan.FromSeconds(5));
-            // ------------------------------------------------------------------------------     
-
-            // ------------------------------------------------------------------------------
-            // New Circal Props
-            // ------------------------------------------------------------------------------
-            var haveNewCircal = false;
-            var newDiameter = 0;
-            Vector2 newLocation = new Vector2();
-
-            
-            while (!haveNewCircal)
-            {
-                newDiameter = rand.Next(10,500);
-                newLocation = new Vector2().RandomVector2();
-                haveNewCircal = circels.TrueForAll(c => Vector2.Subtract(newLocation, c.location).Length() > (newDiameter / 2 + c.Diameter / 2) + strakeSize && 
-                                                        Vector2.Subtract(newLocation, mouseCircel.location).Length() > (mouseCircel.Diameter / 2 + c.Diameter / 2) + strakeSize);
-
-            }   circels.Add(new Circel(newLocation, newDiameter));
-
-            // ------------------------------------------------------------------------------
-            // Draw MouseBall + update
-            mouseCircel.location = GetMousePosition<Vector2>();
-
-            e.Graphics.FillEllipse(Brushes.Gray, new Rectangle(
-                new Point(
-                    GetMousePosition<Point>().X - mouseCircelDiameter/2,
-                    GetMousePosition<Point>().Y - mouseCircelDiameter/2), new Size(mouseCircelDiameter, mouseCircelDiameter)));
-
-            // DrawCircels
-            circels.ForEach(c => { e.Graphics.FillEllipse(
-                  new SolidBrush(c.BorderColor),
-                  c.location.X - (c.Diameter / 2),
-                  c.location.Y - (c.Diameter / 2),
-                  c.Diameter,
-                  c.Diameter);
-            });  
 
             // Colide
             circels.ForEach(c => {
@@ -82,12 +45,54 @@ namespace GameEngineForms.Forms.CircelPackingDemo
                 {
                     // moet nog aangemast worden
                     Intersection_Circle(c.location, c.Diameter / 2, GetMousePosition<Vector2>(), c.location, out Vector2 intersection);
-                    var angel = GetAngel(GetMousePosition<Vector2>(),c.location);
+                    var angel = GetAngel(GetMousePosition<Vector2>(), c.location);
 
-                    c.location = GetPointFromPoint(intersection, (c.Diameter / 2) + 5, angel);
+                    c.location = GetPointFromPoint(intersection, (c.Diameter / 2) + 2, angel);
                 }
 
-            });          
+            });
+
+            // Dispose
+            circels.RemoveAll(c => c.location.X <= 0 || c.location.X >= Width || c.location.Y <= 0 || c.location.Y >= Height);
+
+            // Draw MouseBall + update
+            mouseCircel.location = GetMousePosition<Vector2>();
+
+            e.Graphics.FillEllipse(Brushes.Gray, new Rectangle(
+                new Point(
+                    GetMousePosition<Point>().X - mouseCircelDiameter / 2,
+                    GetMousePosition<Point>().Y - mouseCircelDiameter / 2), new Size(mouseCircelDiameter, mouseCircelDiameter)));
+
+
+            // ------------------------------------------------------------------------------
+            // New Circal Props
+            // ------------------------------------------------------------------------------
+            var haveNewCircal = false;
+            var newDiameter = 0;
+            Vector2 newLocation = new Vector2();
+
+            
+            if(circels.Count < circelChap ) while (!haveNewCircal)
+            {
+                newDiameter = rand.Next(10,500);
+                newLocation = new Vector2().RandomVector2();
+                haveNewCircal = circels.TrueForAll(c => Vector2.Subtract(newLocation, c.location).Length() > (newDiameter / 2 + c.Diameter / 2) + strakeSize && 
+                                                        Vector2.Subtract(newLocation, mouseCircel.location).Length() > (mouseCircel.Diameter / 2 + c.Diameter / 2) + strakeSize);
+
+            }   circels.Add(new Circel(newLocation, newDiameter));
+
+            // ------------------------------------------------------------------------------
+           
+
+            // DrawCircels
+            circels.ForEach(c => { e.Graphics.FillEllipse(
+                  new SolidBrush(c.BorderColor),
+                  c.location.X - (c.Diameter / 2),
+                  c.location.Y - (c.Diameter / 2),
+                  c.Diameter,
+                  c.Diameter);
+            });  
+ 
         }
     }
 
