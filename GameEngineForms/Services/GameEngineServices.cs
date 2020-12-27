@@ -21,11 +21,8 @@ namespace GameEngineForms.Services
             var realX = Control.MousePosition.X - screenRectangle.X;
             var realY = Control.MousePosition.Y - screenRectangle.Y;
 
-            Point tAsPoint = new Point(realX, realY);
-            Vector2 tAsVector2 = new Vector2(realX, realY);
-
-            if (typeof(T) == typeof(Point)) return (T)Convert.ChangeType(tAsPoint, typeof(T));
-            if (typeof(T) == typeof(Vector2)) return (T)Convert.ChangeType(tAsVector2, typeof(T));
+            if (typeof(T) == typeof(Point)) return (T)Convert.ChangeType(new Point(realX, realY), typeof(T));
+            if (typeof(T) == typeof(Vector2)) return (T)Convert.ChangeType(new Vector2(realX, realY), typeof(T));
 
             return default(T);
         }

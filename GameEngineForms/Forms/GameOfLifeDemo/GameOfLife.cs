@@ -73,9 +73,9 @@ namespace GameEngineForms.Forms.GameOfLifeDemo
         #endregion
  
 
-        public override void GameAssets()
+        public override void GameAssetsLoadIn()
         {
-            base.GameAssets();
+            base.GameAssetsLoadIn();
             celSize = 2;
             celCanvasWidth = 1280;// moet deelbaar door 10 zijn
             celCanvasHeight = 800;// moet deelbaar door 10 zijn

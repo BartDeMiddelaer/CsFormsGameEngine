@@ -13,9 +13,9 @@ namespace GameEngineForms.Forms
 {
     public class DefaultParentForm : Form
     {
-        public DefaultParentForm() => AssetLoading += GameAssets;
+        public DefaultParentForm() => AssetLoading += GameAssetsLoadIn;
 
-        public virtual void GameAssets()
+        public virtual void GameAssetsLoadIn()
         {
             // Render Modus
             GameObject.RenderMode = SmoothingMode.HighSpeed;
@@ -47,7 +47,7 @@ namespace GameEngineForms.Forms
             // dit wort maar 1 keer getekent en niet geloopt als je dit wilt moet je een Refreash() oproepen
             // je LoopContainer mag dit niet overlappen dus met 
             //                                                   ||      ||
-            // GameObject.LoopContainer.Bounds = new Rectangle(<HIER>, <Hier>, Width, Height); in GameAssets kan je 
+            // GameObject.LoopContainer.Bounds = new Rectangle(<HIER>, <Hier>, Width, Height); in GameAssetsLoadIn kan je 
             // je LoopContainer een offset geven          
         }
         public virtual void GameLoop(object sender, PaintEventArgs e)
