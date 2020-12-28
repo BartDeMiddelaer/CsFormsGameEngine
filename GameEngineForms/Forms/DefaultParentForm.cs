@@ -5,6 +5,7 @@ using System.Windows.Forms;
 using static GameEngineForms.Services.ControlServices;
 using static GameEngineForms.Services.GameEngineServices;
 using static GameEngineForms.Resources.GameEngineObjects;
+using static GameEngineForms.Services.ExtensionMethods;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using GameEngineForms.Resources;
@@ -19,6 +20,9 @@ namespace GameEngineForms.Forms
         {
             // Render Modus
             GameObject.RenderMode = SmoothingMode.HighSpeed;
+            SetStyle(ControlStyles.AllPaintingInWmPaint, true);
+            SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
+
             Controls.Add(GameObject.LoopContainer);
             Paint += StaticPaint;
             GameCycle += GameLoop;
