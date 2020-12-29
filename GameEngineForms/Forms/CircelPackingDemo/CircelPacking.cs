@@ -24,7 +24,7 @@ namespace GameEngineForms.Forms.CircelPackingDemo
         List<Circel> circels = new List<Circel>();
         List<Color> threadColor = new List<Color>();
 
-        int circelMaxSupply = 1900,
+        int circelMaxSupply = 3000,
             mouseCircelDiameter = 100,
             strakeSize = 1,
             minimumCircelSize = 10,
@@ -54,36 +54,29 @@ namespace GameEngineForms.Forms.CircelPackingDemo
             BackColor = Color.Black;
 
             for (int i = 0; i < threadCount; i++) threadColor.Add(RandomColor());
-            for (int i = 0; i < circelMaxSupply;) 
-                i = fillBatchProcessingInGameAssets();
-                                               
+            for (int i = 0; i < circelMaxSupply;)
+            {
+                FillBatchProcessing();
+                batchProcessing.ForEach(b => { circels.AddRange(b.Batch); });
+
+                i = circels.Count;
+            }
+
+
         }
+
         public override void GameLoop(object sender, PaintEventArgs e)
         {
             // ------------------------------------------------------------------------------
-            // Dispose && add circels to batche items + Update mousBall
+            // Add circels to batche items + Update mousBall
             // ------------------------------------------------------------------------------                  
-            fillBatchProcessing();
+            FillBatchProcessing();
+
+            // ------------------------------------------------------------------------------
+            // Circal to circal colision
+            // ------------------------------------------------------------------------------         
+            batchProcessing.ForEach(b => { circels.AddRange(b.Batch); });
             mouseCircel.location = GetMousePosition<Vector2>();
-
-            // ------------------------------------------------------------------------------
-            // Colision
-            // ------------------------------------------------------------------------------
-            circels.ForEach(c => {
-
-                var travel = Vector2.Subtract(GetMousePosition<Vector2>(), c.location).Length();
-                var combindeDiameters = (mouseCircel.Radius + c.Radius) + strakeSize;
-
-                if ((travel < combindeDiameters) && c != mouseCircel)
-                {
-                    // moet nog aangemast worden
-                    Intersection_Circle(c.location, c.Radius, GetMousePosition<Vector2>(), c.location, out Vector2 intersection);
-                    var angel = GetAngel(GetMousePosition<Vector2>(), c.location);
-
-                    c.location = GetPointFromPoint(intersection, (c.Radius) + (combindeDiameters - travel), angel);
-                }
-
-            });
 
             // ------------------------------------------------------------------------------
             // DrawCircels
@@ -93,25 +86,35 @@ namespace GameEngineForms.Forms.CircelPackingDemo
             });
 
             // ------------------------------------------------------------------------------
+            // Mouse Colision
+            // ------------------------------------------------------------------------------      
+            
+            Parallel.For(0, batchProcessing.Count, (onThread) =>
+            {
+                batchProcessing[onThread].Batch.ForEach(c =>
+                {
+                    if (c != mouseCircel) RepellBallfromBall(ref c.location, c.Radius, strakeSize, mouseCircel.location, mouseCircel.Radius, strakeSize);
+
+                    c.location.Y += new Random().Next(-c.FallSpeed + 1, c.FallSpeed);
+                    c.location.X += new Random().Next(-c.FallSpeed + 1, c.FallSpeed);
+                });
+
+                batchProcessing[onThread].Batch.RemoveAll(c => c != mouseCircel && (c.location.X <= -c.Radius || c.location.X >= (Width + c.Radius) || c.location.Y <= -c.Radius || c.location.Y >= (Height + c.Radius)));
+            });
+
+            // ------------------------------------------------------------------------------
             // Object count
             // ------------------------------------------------------------------------------
             GameObject.ObjectCount = circels.Count;
         }
-
-        public int fillBatchProcessingInGameAssets()
+      
+        public void FillBatchProcessing()
         {
-            fillBatchProcessing();
-            return circels.Count;
-        } 
-        public void fillBatchProcessing()
-        {
-
             // ------------------------------------------------------------------------------
             // Create
             // ------------------------------------------------------------------------------
             circels.Clear();
             circels.Add(mouseCircel);
-
             Parallel.For(0, batchProcessing.Count, (onThread) => {
                
                 if (batchProcessing[onThread].Batch.Count < batchProcessing[onThread].MaxSupply)
@@ -127,20 +130,8 @@ namespace GameEngineForms.Forms.CircelPackingDemo
 
 
                     if (haveNewCircal) batchProcessing[onThread].Batch.Add(new Circel(newLocation, newDiameter, threadColor[onThread]));
-                }
-
-                batchProcessing[onThread].Batch.RemoveAll(c => c != mouseCircel && (c.location.X <= -c.Radius || c.location.X >= (Width + c.Radius) || c.location.Y <= -c.Radius || c.location.Y >= (Height + c.Radius)));
-
-                batchProcessing[onThread].Batch.ForEach(c =>
-                {
-                    c.location.Y += new Random().Next(-c.FallSpeed + 1, c.FallSpeed);
-                    c.location.X += new Random().Next(-c.FallSpeed + 1, c.FallSpeed);
-                });
-            });
-            // ------------------------------------------------------------------------------
-            // Dispose Overelapping
-            // ------------------------------------------------------------------------------
-            batchProcessing.ForEach(b => circels.AddRange(b.Batch));
+                }       
+            });             
 
         }
     } 

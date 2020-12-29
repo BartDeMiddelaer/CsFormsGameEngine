@@ -27,6 +27,20 @@ namespace GameEngineForms.Services
             return default(T);
         }
 
+        public static void RepellBallfromBall(ref Vector2 repellLocation, float repellRadius, int repellStrokeSize, Vector2 pucherLocation, float pucherRadius, int pucherStrokeSize)
+        {
+            var travel = Vector2.Subtract(pucherLocation, repellLocation).Length();
+            var combindeDiameters = (pucherRadius + repellRadius) + repellStrokeSize + pucherStrokeSize;
+
+            if (travel < combindeDiameters)
+            {
+                Intersection_Circle(repellLocation, repellRadius, pucherLocation, repellLocation, out Vector2 intersection);
+                var angel = GetAngel(pucherLocation, repellLocation);
+
+                repellLocation = GetPointFromPoint(intersection, (repellRadius) + (combindeDiameters - travel), angel);
+            }
+        }
+
         public static Vector2 GetPointFromPoint(Vector2 from_, double l_, double h_)
         {
             return new Vector2(
